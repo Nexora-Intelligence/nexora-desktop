@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+    <title>New Scheduled Task</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font: 13px/1.45 -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, sans-serif;
+      }
+      body {
+        margin: 0;
+        padding: 18px 20px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: 100vh;
+        box-sizing: border-box;
+        background: Canvas;
+        color: CanvasText;
+      }
+      h1 {
+        margin: 0;
+        font-size: 14px;
+        font-weight: 600;
+      }
+      p.hint {
+        margin: 0;
+        opacity: 0.6;
+      }
+      label {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        font-weight: 500;
+      }
+      textarea,
+      input {
+        font: inherit;
+        padding: 7px 9px;
+        border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+        border-radius: 7px;
+        background: color-mix(in srgb, Canvas 92%, CanvasText 8%);
+        color: inherit;
+        resize: none;
+      }
+      textarea:focus,
+      input:focus {
+        outline: 2px solid Highlight;
+        outline-offset: -1px;
+      }
+      .row {
+        margin-top: auto;
+        display: flex;
+        justify-content: flex-end;
+        gap: 8px;
+      }
+      button {
+        font: inherit;
+        padding: 6px 16px;
+        border-radius: 7px;
+        border: 1px solid color-mix(in srgb, CanvasText 22%, transparent);
+        background: color-mix(in srgb, Canvas 90%, CanvasText 10%);
+        color: inherit;
+      }
+      button.primary {
+        border-color: transparent;
+        background: Highlight;
+        color: HighlightText;
+        font-weight: 600;
+      }
+      button:disabled {
+        opacity: 0.45;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Run something on a schedule</h1>
+    <label>
+      What should Nexora do?
+      <textarea id="goal" rows="4" placeholder="Sort yesterday's downloads into ~/Documents and tell me what moved."></textarea>
+    </label>
+    <label>
+      When?
+      <input id="every" list="cadences" value="daily at 9am" />
+      <datalist id="cadences">
+        <option value="every 30 minutes"></option>
+        <option value="hourly"></option>
+        <option value="daily at 9am"></option>
+        <option value="weekdays at 08:30"></option>
+        <option value="every monday at 17:00"></option>
+      </datalist>
+    </label>
+    <p class="hint">It runs in a new chat while Nexora Desktop is open, and asks permission as usual.</p>
+    <div class="row">
+      <button id="cancel">Cancel</button>
+      <button id="save" class="primary" disabled>Schedule</button>
+    </div>
+
+    <script>
+      const goal = document.getElementById("goal");
+      const every = document.getElementById("every");
+      const save = document.getElementById("save");
+
+      const check = () => {
+        save.disabled = !goal.value.trim() || !every.value.trim();
+      };
+      const submit = () => {
+        if (save.disabled) return;
+        window.nexoraPrompt.submit({ goal: goal.value.trim(), every: every.value.trim() });
+      };
+
+      goal.addEventListener("input", check);
+      every.addEventListener("input", check);
+      document.getElementById("cancel").addEventListener("click", () => window.nexoraPrompt.cancel());
+      save.addEventListener("click", submit);
+      document.addEventListener("keydown", (event) => {
+        if (event.key === "Escape") window.nexoraPrompt.cancel();
+        // Enter sends from the one-line field; the goal box keeps its newlines.
+        if (event.key === "Enter" && (event.target === every || event.metaKey)) submit();
+      });
+
+      goal.focus();
+      check();
+    </script>
+  </body>
+</html>

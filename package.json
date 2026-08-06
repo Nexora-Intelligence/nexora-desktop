@@ -1,0 +1,63 @@
+{
+  "name": "nexora-desktop",
+  "version": "1.8.0",
+  "private": true,
+  "description": "Nexora Desktop — chat + coding agent with permission-gated local file & shell access, an agent-driven browser, and Nexora Live voice calls, in a native macOS shell.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac",
+    "dist:dir": "electron-builder --mac --dir",
+    "test": "electron test/ui.js && electron test/electron-behaviour.js"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "ai.nexora.desktop",
+    "productName": "Nexora Desktop",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "local-tools.js",
+      "computer-use.js",
+      "mcp-server.js",
+      "browser-ui-preload.js",
+      "browser-chrome.html",
+      "browser-sidebar.html",
+      "prompt-preload.js",
+      "schedule-prompt.html",
+      "share-preload.js",
+      "share-picker.html",
+      "package.json"
+    ],
+    "artifactName": "Nexora-Desktop-${arch}.${ext}",
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.icns",
+      "extendInfo": {
+        "NSMicrophoneUsageDescription": "Nexora Live listens to you so you can talk to the agent instead of typing.",
+        "NSCameraUsageDescription": "Nexora Live sends the agent a still from your camera so it can see what you are asking about."
+      },
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "arm64"
+          ]
+        }
+      ],
+      "identity": null
+    }
+  }
+}

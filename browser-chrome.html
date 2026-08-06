@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'" />
+    <title>Nexora Browser</title>
+    <style>
+      :root { color-scheme: dark; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        height: 100vh;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: #0b1220;
+        color: #e5e7eb;
+        font: 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        user-select: none;
+        border-bottom: 1px solid #1f2937;
+      }
+      .row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 10px;
+        height: 40px;
+        flex: none;
+      }
+      #findrow {
+        display: none;
+        height: 34px;
+        border-top: 1px solid #1f2937;
+        font-size: 12px;
+      }
+      #findrow.open { display: flex; }
+      #findtext {
+        flex: 1;
+        max-width: 320px;
+        height: 24px;
+        padding: 0 9px;
+        border-radius: 6px;
+        border: 1px solid #1f2937;
+        background: #111827;
+        color: #e5e7eb;
+        font: inherit;
+        outline: none;
+      }
+      #findtext:focus { border-color: #4f46e5; }
+      #findcount { color: #6b7280; font-size: 11.5px; min-width: 62px; }
+      #findcount.none { color: #f87171; }
+      /* An indeterminate sweep, riding the bottom edge so it costs the strip no
+         height: a real percentage would be a lie, since Chromium reports
+         progress only for the main document. */
+      #bar {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 2px;
+        overflow: hidden;
+      }
+      #bar.on::after {
+        content: "";
+        display: block;
+        height: 2px;
+        width: 35%;
+        background: linear-gradient(90deg, transparent, #6366f1, transparent);
+        animation: sweep 1.1s linear infinite;
+      }
+      @keyframes sweep { from { transform: translateX(-100%) } to { transform: translateX(300%) } }
+      button {
+        background: transparent;
+        color: #9ca3af;
+        border: 1px solid transparent;
+        border-radius: 7px;
+        height: 28px;
+        min-width: 28px;
+        padding: 0 8px;
+        font-size: 13px;
+        cursor: pointer;
+      }
+      button:hover:not(:disabled) { background: #1f2937; color: #e5e7eb; }
+      button:disabled { opacity: 0.35; cursor: default; }
+      button.on { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+      #url {
+        flex: 1;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 8px;
+        border: 1px solid #1f2937;
+        background: #111827;
+        color: #e5e7eb;
+        font: inherit;
+        outline: none;
+      }
+      #url:focus { border-color: #4f46e5; }
+      #agent {
+        display: none;
+        align-items: center;
+        gap: 6px;
+        color: #a5b4fc;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      #agent.live { display: flex; }
+      .dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: #6366f1;
+        animation: pulse 1.4s ease-in-out infinite;
+      }
+      @keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.25 } }
+    </style>
+  </head>
+  <body>
+    <div class="row">
+      <button id="back" title="Back (⌘[)">&#8592;</button>
+      <button id="forward" title="Forward (⌘])">&#8594;</button>
+      <button id="reload" title="Reload (⌘R)">&#8635;</button>
+      <input id="url" spellcheck="false" placeholder="Search or enter address" />
+      <span id="agent"><span class="dot"></span>Nexora is driving</span>
+      <button id="ask" title="Ask Nexora about this page (⌘⇧A)">Ask Nexora</button>
+    </div>
+    <div class="row" id="findrow">
+      <input id="findtext" spellcheck="false" placeholder="Find on page" />
+      <span id="findcount"></span>
+      <button id="findprev" title="Previous match (⌘⇧G)">&#8593;</button>
+      <button id="findnext" title="Next match (⌘G)">&#8595;</button>
+      <button id="findclose" title="Close (Esc)">&#10005;</button>
+    </div>
+    <div id="bar"></div>
+    <script>
+      const $ = (id) => document.getElementById(id);
+      const send = (message) => window.nexoraUI.send(message);
+      let editing = false;
+      let loading = false;
+
+      $("back").onclick = () => send({ action: "back" });
+      $("forward").onclick = () => send({ action: "forward" });
+      $("reload").onclick = () => send({ action: loading ? "stop" : "reload" });
+      $("ask").onclick = () => send({ action: "toggleSidebar" });
+
+      $("url").onfocus = () => {
+        editing = true;
+        $("url").select();
+      };
+      $("url").onblur = () => {
+        editing = false;
+      };
+      $("url").onkeydown = (event) => {
+        if (event.key !== "Enter") return;
+        $("url").blur();
+        send({ action: "navigate", url: $("url").value });
+      };
+
+      // Typing opens a fresh search; the arrows and Enter walk its matches.
+      const step = (forward) => {
+        const text = $("findtext").value;
+        if (text) send({ action: "find", text, forward, fresh: false });
+      };
+      $("findtext").oninput = () => {
+        const text = $("findtext").value;
+        if (!text) $("findcount").textContent = "";
+        send({ action: "find", text, forward: true, fresh: true });
+      };
+      $("findtext").onkeydown = (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          step(!event.shiftKey);
+        }
+      };
+      $("findprev").onclick = () => step(false);
+      $("findnext").onclick = () => step(true);
+      $("findclose").onclick = () => send({ action: "findClose" });
+
+      // The main process owns the truth: it pushes state after every
+      // navigation, whoever caused it — the user here or the agent.
+      window.nexoraUI.onState((state) => {
+        if (!editing) $("url").value = state.url || "";
+        $("back").disabled = !state.canGoBack;
+        $("forward").disabled = !state.canGoForward;
+        $("ask").classList.toggle("on", Boolean(state.sidebarOpen));
+        $("agent").classList.toggle("live", Boolean(state.agentActive));
+        loading = Boolean(state.loading);
+        $("reload").textContent = loading ? "✕" : "↻";
+        $("reload").title = loading ? "Stop (Esc)" : "Reload (⌘R)";
+        $("bar").classList.toggle("on", loading);
+        const open = Boolean(state.findOpen);
+        $("findrow").classList.toggle("open", open);
+        if (!open) {
+          $("findtext").value = "";
+          $("findcount").textContent = "";
+        }
+      });
+
+      window.nexoraUI.onFind((result) => {
+        const total = Number(result.matches || 0);
+        $("findcount").textContent = total ? `${result.active} of ${total}` : "no matches";
+        $("findcount").classList.toggle("none", !total);
+      });
+
+      // Keys are bound in the main process, which is the only place that sees
+      // them wherever they were pressed — page, panel or here.
+      window.nexoraUI.onCommand((command) => {
+        if (command.name === "focusAddress") $("url").focus();
+        else if (command.name === "focusFind") $("findtext").focus();
+        else if (command.name === "findNext") step(true);
+        else if (command.name === "findPrev") step(false);
+      });
+    </script>
+  </body>
+</html>
