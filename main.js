@@ -1621,6 +1621,14 @@ function createWindow() {
   win.webContents.on("did-create-window", (child, { url }) => {
     if (!isSignIn(url)) return;
     child.setMenuBarVisibility(false);
+    // A sign-in window that opens behind the app looks like nothing happened —
+    // people click the button again, and the second attempt cancels the first
+    // ("Sign-in was cancelled"). Put it in front and keep it there.
+    child.once("ready-to-show", () => {
+      child.show();
+      child.focus();
+      child.moveTop();
+    });
     child.webContents.setWindowOpenHandler(({ url: next }) => {
       void shell.openExternal(next);
       return { action: "deny" };
