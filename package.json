@@ -1,6 +1,6 @@
 {
   "name": "nexora-desktop",
-  "version": "1.8.0",
+  "version": "1.8.1",
   "private": true,
   "description": "Nexora Desktop — chat + coding agent with permission-gated local file & shell access, an agent-driven browser, and Nexora Live voice calls, in a native macOS shell.",
   "main": "main.js",
