@@ -43,6 +43,7 @@ const INSTRUCTIONS = [
   "Long writes truncate. Write in chunks of ~50 lines, continuing with mode:\"append\".",
   "`run_command` is one shot with an exit code. For anything that stays alive — a REPL, a dev server, an interactive installer — use `process`, which keeps the session and lets you send input to it.",
   "Paths may be scoped. If the user has set workspace folders, everything outside them is refused; `workspace_info` says which folders those are.",
+  "`skills` lists the procedures this machine already has written down. Reading the relevant one first beats improvising a task someone has already worked out.",
 ].join("\n");
 
 // ---------------------------------------------------------------------------
@@ -220,6 +221,22 @@ const TOOLS = [
           description: 'For \'add\': "every 30 minutes", "hourly", "daily at 9am", "weekdays at 08:30", "every monday at 17:00" or "once at 2026-08-05 09:00".',
         },
         id: { type: "string", description: "The task id, for every op except list and add." },
+      },
+      required: ["op"],
+    },
+  },
+  {
+    name: "skills",
+    action: "skills",
+    description:
+      "The written procedures installed on this machine (the same ~/.claude skills Claude Code reads): op 'list' for what exists, op 'load' with a name for the full SKILL.md. " +
+      "Check the list when a task sounds like something with an established way of being done — a skill is instructions to follow with the tools you already have, not a tool of its own.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        op: { type: "string", enum: ["list", "load"] },
+        name: { type: "string", description: "For 'load': the skill name exactly as 'list' gave it." },
+        refresh: { type: "boolean", description: "For 'list': rescan the folders instead of using the cached listing." },
       },
       required: ["op"],
     },

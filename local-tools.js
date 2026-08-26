@@ -1023,6 +1023,154 @@ function dueSchedules(now = Date.now()) {
 }
 
 // ---------------------------------------------------------------------------
+// Skills
+//
+// A skill is a folder holding a SKILL.md: a written procedure the agent reads
+// and then follows with the tools it already has. The same folders Claude Code
+// reads are read here, so a skill the user installed once works in Nexora
+// Desktop without being copied anywhere.
+//
+// Deliberately outside `resolvePath`. Skills live in ~/.claude, which is not a
+// workspace folder, so scoping the read to the workspace would hide every skill
+// the moment a user narrowed it to a project. What keeps that from being an
+// escape hatch is that this reads nothing but files named SKILL.md under a
+// fixed set of roots — a path cannot be passed in, only a skill name matched
+// against what the scan found.
+//
+// Read-only. Nothing here runs a skill; it hands over the text and stops.
+// ---------------------------------------------------------------------------
+
+const SKILL_MAX_DEPTH = 5;
+const SKILL_CACHE_TTL_MS = 60_000;
+const SKILL_MAX_BYTES = 48_000;
+const SKILL_MAX_FOUND = 2000;
+
+let skillCache = null;
+
+/**
+ * Where skills come from, best source first — a name found twice keeps the
+ * earlier one, so a user's own copy beats the plugin it was forked from.
+ */
+function skillRoots() {
+  const roots = [];
+  const extra = process.env.NEXORA_SKILLS_DIRS;
+  if (extra) {
+    for (const dir of extra.split(path.delimiter).map((d) => d.trim()).filter(Boolean)) {
+      roots.push({ dir: path.resolve(dir), source: "custom" });
+    }
+  }
+  const home = os.homedir();
+  roots.push({ dir: path.join(home, ".claude", "skills"), source: "personal" });
+  roots.push({ dir: path.join(home, ".claude", "plugins"), source: "plugin" });
+  // A workspace folder is the closest thing the desktop has to "the project",
+  // so its .claude/skills counts the way a repo's would under Claude Code.
+  for (const dir of policy().allowedDirectories) {
+    try {
+      roots.push({ dir: path.join(expandHome(dir), ".claude", "skills"), source: "project" });
+    } catch {
+      // A malformed workspace entry shouldn't cost the user their other skills.
+    }
+  }
+  return roots;
+}
+
+/** name/description out of SKILL.md frontmatter, best effort. */
+function parseSkillFrontmatter(markdown) {
+  const match = markdown.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+  if (!match) return {};
+  const out = {};
+  for (const line of match[1].split(/\r?\n/)) {
+    const kv = line.match(/^(name|description):\s*(.+)$/);
+    if (kv) out[kv[1]] = kv[2].trim().replace(/^["']|["']$/g, "");
+  }
+  return out;
+}
+
+function scanSkillDir(dir, source, depth, found) {
+  if (depth > SKILL_MAX_DEPTH || found.length >= SKILL_MAX_FOUND) return;
+  let entries;
+  try {
+    entries = fs.readdirSync(dir);
+  } catch {
+    return;
+  }
+  if (entries.includes("SKILL.md")) {
+    const file = path.join(dir, "SKILL.md");
+    try {
+      const raw = fs.readFileSync(file, "utf8");
+      const meta = parseSkillFrontmatter(raw);
+      found.push({
+        name: meta.name || path.basename(dir),
+        description: meta.description || raw.replace(/^---[\s\S]*?---/, "").trim().slice(0, 160),
+        source,
+        path: file,
+      });
+    } catch {
+      // Unreadable skill: skip it rather than fail the whole listing.
+    }
+    return; // a skill folder doesn't nest more skills
+  }
+  for (const entry of entries) {
+    if (entry.startsWith(".") || entry === "node_modules") continue;
+    const child = path.join(dir, entry);
+    try {
+      if (fs.statSync(child).isDirectory()) scanSkillDir(child, source, depth + 1, found);
+    } catch {
+      // Broken symlink, permission denied — keep going.
+    }
+  }
+}
+
+function listDiskSkills(force = false) {
+  if (!force && skillCache && Date.now() - skillCache.at < SKILL_CACHE_TTL_MS) return skillCache.skills;
+  const found = [];
+  for (const root of skillRoots()) {
+    scanSkillDir(root.dir, root.source, 0, found);
+  }
+  const byName = new Map();
+  for (const skill of found) {
+    if (!byName.has(skill.name)) byName.set(skill.name, skill);
+  }
+  const skills = [...byName.values()].sort((a, b) => a.name.localeCompare(b.name));
+  skillCache = { at: Date.now(), skills };
+  return skills;
+}
+
+/** Test hook: drop the cache so a fresh scan sees a temp directory. */
+function resetSkillCache() {
+  skillCache = null;
+}
+
+function skillsTool(input) {
+  const op = String(input.op || "list");
+  if (op === "list") {
+    const skills = listDiskSkills(input.refresh === true);
+    return {
+      op,
+      count: skills.length,
+      skills: skills.map((s) => ({ name: s.name, description: s.description, source: s.source })),
+    };
+  }
+  if (op === "load") {
+    const name = String(input.name || "").trim();
+    if (!name) throw new Error("name is required — call skills with op:'list' for the available names.");
+    const skill = listDiskSkills().find((s) => s.name === name);
+    if (!skill) {
+      throw new Error(`Unknown skill: ${name}. Call skills with op:'list' for the available names.`);
+    }
+    const raw = fs.readFileSync(skill.path, "utf8");
+    return {
+      op,
+      name: skill.name,
+      source: skill.source,
+      path: skill.path,
+      content: raw.length > SKILL_MAX_BYTES ? `${raw.slice(0, SKILL_MAX_BYTES)}\n\n[truncated]` : raw,
+    };
+  }
+  throw new Error(`Unknown skills op: ${op}. Use 'list' or 'load'.`);
+}
+
+// ---------------------------------------------------------------------------
 
 /** Which permission each action asks for, and how to describe it in the dialog. */
 const CAPABILITY = {
@@ -1041,6 +1189,10 @@ const CAPABILITY = {
   policy: null,
   // Reading the list is free; changing what the machine will do later is not.
   schedule: (input) => (String(input.op || "list") === "list" ? null : "schedule"),
+  // Browsing the catalogue is free — it is names and one-liners out of the
+  // user's own agent config. Loading one puts a whole instruction file into the
+  // model's context, which is a read of a file, and asks like one.
+  skills: (input) => (String(input.op || "list") === "list" ? null : "read"),
 };
 
 function detailFor(action, input) {
@@ -1061,6 +1213,8 @@ function detailFor(action, input) {
       return input.op === "add"
         ? `${input.goal}\n\n${input.every ?? input.when ?? ""}`
         : `${input.op} ${input.id ?? ""}`;
+    case "skills":
+      return input.op === "load" ? `skill "${input.name ?? ""}"` : "list installed skills";
     default:
       return String(input.path ?? "");
   }
@@ -1116,6 +1270,8 @@ async function runLocal(action, input = {}, options = {}) {
           return shellTool(input);
         case "schedule":
           return scheduleTool(input);
+        case "skills":
+          return skillsTool(input);
         case "policy":
           return { ...policy(), settingsFile: policyFile(), auditLog: auditFile(), home: os.homedir(), platform: process.platform };
         default:
@@ -1145,4 +1301,8 @@ module.exports = {
   readSchedules,
   dueSchedules,
   describeCadence,
+  // Skills: the scan is exported so the app can show the catalogue without
+  // going through a permission-gated action to draw a menu.
+  listDiskSkills,
+  resetSkillCache,
 };

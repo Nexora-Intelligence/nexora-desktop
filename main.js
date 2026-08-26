@@ -148,7 +148,7 @@ function registerBridge() {
       // What this build can do. The console feature-detects off this rather
       // than comparing version numbers, because a user running last month's
       // app against today's console is the normal case, not the exception.
-      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live"],
+      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live", "skills"],
     };
   });
 

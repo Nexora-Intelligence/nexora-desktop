@@ -8,7 +8,7 @@
     "start": "electron .",
     "dist": "electron-builder --mac",
     "dist:dir": "electron-builder --mac --dir",
-    "test": "electron test/ui.js && electron test/electron-behaviour.js"
+    "test": "node --test test/local-skills.js && electron test/ui.js && electron test/electron-behaviour.js"
   },
   "devDependencies": {
     "electron": "^37.2.0",
