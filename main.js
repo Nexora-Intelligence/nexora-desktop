@@ -1573,6 +1573,187 @@ function browserUserAgent() {
 }
 
 // ---------------------------------------------------------------------------
+// Browser-based device-code sign-in (OAuth 2.0 Device Authorization Grant).
+//
+// The in-window Firebase popup above works, but it makes the user sign in
+// again inside the app. This is the other door: it opens the SYSTEM browser —
+// where the user is already signed in — to approve this device, and mints a
+// durable, revocable API key for it. We inject that key into the loaded web
+// app's session store and reload, so the app comes up signed in and stays
+// that way across restarts (the key is an ordinary revocable device key, not
+// a session that dies). The runtime endpoints live behind the app's own
+// /api/nx proxy and need no key of their own — code and token are pre-auth.
+// ---------------------------------------------------------------------------
+
+let deviceSignInWindow = null;
+
+async function deviceApi(pathSuffix, body) {
+  const res = await fetch(`${HOME.origin}/api/nx/api/v1/identity/device/${pathSuffix}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", accept: "application/json" },
+    body: JSON.stringify(body || {}),
+  });
+  const json = await res.json().catch(() => ({}));
+  return { status: res.status, json };
+}
+
+/** The small, fully-controlled window shown while the user approves in the browser. */
+function deviceStatusHtml(userCode, verificationUri) {
+  const safeCode = String(userCode).replace(/[^A-Z0-9-]/g, "");
+  const safeUri = String(verificationUri).replace(/"/g, "&quot;");
+  return `<!doctype html><html><head><meta charset="utf-8"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'">
+<style>
+  :root { color-scheme: dark; }
+  html,body { margin:0; height:100%; background:#0b1220; color:#e5e7eb;
+    font:14px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; }
+  .wrap { display:flex; flex-direction:column; gap:16px; padding:28px; height:100%; box-sizing:border-box; }
+  h1 { font-size:16px; margin:0; font-weight:600; }
+  p { margin:0; color:#94a3b8; }
+  .code { font:600 30px/1 ui-monospace,SFMono-Regular,Menlo,monospace; letter-spacing:4px;
+    background:#111827; border:1px solid #1f2937; border-radius:10px; padding:16px; text-align:center; color:#fff; }
+  .row { margin-top:auto; display:flex; gap:8px; justify-content:flex-end; }
+  a.link { color:#60a5fa; text-decoration:none; }
+  a.link:hover { text-decoration:underline; }
+  button { font:inherit; padding:8px 14px; border-radius:8px; border:1px solid #1f2937;
+    background:#111827; color:#e5e7eb; cursor:pointer; }
+  button:hover { background:#1f2937; }
+  .spin { display:inline-block; width:12px; height:12px; margin-right:6px; border:2px solid #334155;
+    border-top-color:#60a5fa; border-radius:50%; animation:s 0.8s linear infinite; vertical-align:-1px; }
+  @keyframes s { to { transform:rotate(360deg); } }
+</style></head><body><div class="wrap">
+  <h1>Approve Nexora Desktop</h1>
+  <p>A browser window opened. If it asks for a code, enter this one:</p>
+  <div class="code">${safeCode}</div>
+  <p><span class="spin"></span>Waiting for you to approve in the browser…</p>
+  <p>Didn't open? <a class="link" href="${safeUri}" target="_blank" rel="noreferrer">Open it again</a>.</p>
+  <div class="row"><button onclick="window.close()">Cancel</button></div>
+</div></body></html>`;
+}
+
+/** Write a minted session into the web app's store and reload it, signed in. */
+function applyDeviceSession(sess) {
+  if (!win || win.isDestroyed() || !sess || !sess.apiKey) return;
+  const payload = JSON.stringify({
+    state: { apiKey: sess.apiKey, principal: sess.principal ?? null, orgName: sess.orgName ?? null },
+    version: 0,
+  });
+  const js =
+    `try { localStorage.setItem('nexora.session', ${JSON.stringify(payload)}); ` +
+    `localStorage.removeItem('nexora.apiKey'); } catch (e) {}`;
+  win.webContents
+    .executeJavaScript(js, true)
+    .then(() => {
+      if (win && !win.isDestroyed()) win.webContents.reload();
+    })
+    .catch(() => undefined);
+  const who = sess.principal?.name ? `as ${sess.principal.name}` : "";
+  showNotification({ title: "Nexora Desktop", body: `Signed in ${who}.`.replace(/\s+/g, " ").trim(), force: true });
+}
+
+async function browserSignIn() {
+  if (!win || win.isDestroyed()) return;
+  if (deviceSignInWindow && !deviceSignInWindow.isDestroyed()) {
+    deviceSignInWindow.show();
+    deviceSignInWindow.focus();
+    return;
+  }
+
+  let start;
+  try {
+    const { status, json } = await deviceApi("code", { client: "desktop", label: os.hostname() });
+    if (status !== 201 && status !== 200) throw new Error(json?.error || `HTTP ${status}`);
+    start = json;
+  } catch (error) {
+    await dialog.showMessageBox(win, {
+      type: "error",
+      title: "Nexora Desktop",
+      message: "Could not start browser sign-in",
+      detail: `${String(error?.message || error)}\n\nIs the app reachable? You can also sign in inside the window.`,
+    });
+    return;
+  }
+
+  const { deviceCode, userCode, verificationUri, verificationUriComplete, expiresIn, interval } = start;
+
+  const statusWin = new BrowserWindow({
+    width: 460,
+    height: 380,
+    parent: win,
+    resizable: false,
+    minimizable: false,
+    maximizable: false,
+    fullscreenable: false,
+    title: "Sign in to Nexora",
+    backgroundColor: "#0b1220",
+    autoHideMenuBar: true,
+    webPreferences: { preload: "", contextIsolation: true, nodeIntegration: false, sandbox: true },
+  });
+  deviceSignInWindow = statusWin;
+  // Links in the status page open in the system browser, never a child window.
+  statusWin.webContents.setWindowOpenHandler(({ url }) => {
+    void shell.openExternal(url);
+    return { action: "deny" };
+  });
+  statusWin.loadURL(
+    "data:text/html;charset=utf-8," +
+      encodeURIComponent(deviceStatusHtml(userCode, verificationUriComplete || verificationUri))
+  );
+
+  let cancelled = false;
+  statusWin.on("closed", () => {
+    cancelled = true;
+    if (deviceSignInWindow === statusWin) deviceSignInWindow = null;
+  });
+
+  void shell.openExternal(verificationUriComplete || verificationUri);
+
+  const deadline = Date.now() + (Number(expiresIn) || 600) * 1000;
+  let waitMs = Math.max(1, Number(interval) || 5) * 1000;
+
+  const fail = (detail) => {
+    if (!statusWin.isDestroyed()) statusWin.close();
+    if (win && !win.isDestroyed()) {
+      void dialog.showMessageBox(win, { type: "info", title: "Nexora Desktop", message: "Browser sign-in", detail });
+    }
+  };
+
+  while (!cancelled && Date.now() < deadline) {
+    await settle(waitMs);
+    if (cancelled) return;
+    let poll;
+    try {
+      poll = (await deviceApi("token", { deviceCode })).json;
+    } catch {
+      continue; // transient network error — keep polling until the deadline
+    }
+    if (poll.status === "approved") {
+      applyDeviceSession(poll.session);
+      if (!statusWin.isDestroyed()) statusWin.close();
+      return;
+    }
+    if (poll.status === "denied") return fail("The request was denied in the browser.");
+    if (poll.status === "expired_token") return fail("The sign-in request expired. Please try again.");
+    if (poll.status === "slow_down") waitMs += 1000;
+    // authorization_pending / rate_limited / anything else: keep waiting.
+  }
+  if (!cancelled) fail("The sign-in request timed out. Please try again.");
+}
+
+/** Clear the web app's stored session and reload it, signed out. */
+function signOutDesktop() {
+  if (!win || win.isDestroyed()) return;
+  win.webContents
+    .executeJavaScript(
+      "try { localStorage.removeItem('nexora.session'); localStorage.removeItem('nexora.apiKey'); } catch (e) {}",
+      true
+    )
+    .then(() => {
+      if (win && !win.isDestroyed()) win.webContents.reload();
+    })
+    .catch(() => undefined);
+}
+
+// ---------------------------------------------------------------------------
 
 function createWindow() {
   win = new BrowserWindow({
@@ -2017,6 +2198,19 @@ function buildMenu() {
     { role: "appMenu" },
     { role: "fileMenu" },
     { role: "editMenu" },
+    {
+      label: "Account",
+      submenu: [
+        {
+          // Opens the system browser (already signed in) to approve this
+          // device and mint a durable key — no in-window password re-entry.
+          label: "Sign in with Browser…",
+          click: () => void browserSignIn(),
+        },
+        { type: "separator" },
+        { label: "Sign Out", click: () => signOutDesktop() },
+      ],
+    },
     {
       // Two agent surfaces, nothing else — no console navigation here.
       label: "Agent",
