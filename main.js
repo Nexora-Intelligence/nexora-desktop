@@ -17,6 +17,7 @@ const os = require("node:os");
 const path = require("node:path");
 const local = require("./local-tools");
 const computer = require("./computer-use");
+const agentClis = require("./agent-clis");
 
 /**
  * Nexora Desktop — a native macOS shell around Nexora Chat and Nexora Code,
@@ -64,6 +65,8 @@ const CAPABILITY_LABEL = {
   delete: "DELETE a file or folder",
   browser: "control a web browser",
   computer: "control this Mac — move the pointer, click and type",
+  agentDesktop: "operate your apps through their accessibility tree (agent-desktop)",
+  agentBrowser: "drive a headless browser (agent-browser)",
   schedule: "schedule work to run later, on its own",
 };
 
@@ -148,7 +151,7 @@ function registerBridge() {
       // What this build can do. The console feature-detects off this rather
       // than comparing version numbers, because a user running last month's
       // app against today's console is the normal case, not the exception.
-      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live", "skills"],
+      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live", "skills", "agentCli"],
     };
   });
 
@@ -1032,6 +1035,18 @@ function registerComputerBridge() {
   ipcMain.handle("nexora:computer", async (event, payload) => {
     assertTrustedSender(event);
     return computer.runComputer(String(payload?.action || ""), payload?.input || {}, { confirm: askPermission });
+  });
+
+  // Agent CLIs: agent-desktop and agent-browser, one command per call, the
+  // same dialog and audit line as every other local action.
+  ipcMain.handle("nexora:agentCli", async (event, payload) => {
+    assertTrustedSender(event);
+    const options = payload?.options && typeof payload.options === "object" ? payload.options : {};
+    return agentClis.run(String(payload?.cli || ""), payload?.command, payload?.args, {
+      stdin: typeof options.stdin === "string" ? options.stdin : undefined,
+      timeoutMs: options.timeoutMs,
+      confirm: askPermission,
+    });
   });
 }
 
@@ -2267,6 +2282,58 @@ function buildMenu() {
                 dialog.showMessageBox(win, {
                   type: "info",
                   message: stopped ? `Stopped ${stopped} process${stopped === 1 ? "" : "es"}.` : "No agent processes are running.",
+                });
+              },
+            },
+          ],
+        },
+        {
+          label: "Agent CLIs",
+          submenu: [
+            {
+              label: "Check Agent Desktop & Agent Browser…",
+              click: async () => {
+                const report = await agentClis.status();
+                const line = (name, entry) =>
+                  entry.found
+                    ? `${name}: ${entry.version || "found"} (${entry.source}: ${entry.path})`
+                    : `${name}: NOT found — install with: ${entry.install}`;
+                const perms = report.desktop.permissions
+                  ? Object.entries(report.desktop.permissions)
+                      .map(([key, value]) => `  ${key.replace(/_/g, " ")}: ${value?.state ?? "unknown"}`)
+                      .join("\n")
+                  : "  (not reported)";
+                const { response } = await dialog.showMessageBox(win, {
+                  type: "info",
+                  message: "Agent CLIs",
+                  detail:
+                    `${line("agent-desktop", report.desktop)}\n${line("agent-browser", report.browser)}\n\n` +
+                    `agent-desktop permissions (granted to Nexora Desktop, which runs it):\n${perms}\n\n` +
+                    "The agent reaches these as the agent_desktop and agent_browser tools; each call asks for permission here.",
+                  buttons: ["OK", "Open Accessibility Guide", "Open Audit Log…"],
+                  defaultId: 0,
+                });
+                if (response === 1) await agentClis.openDesktopPermissionGuide();
+                if (response === 2) await shell.openPath(local.auditFile());
+              },
+            },
+            {
+              label: "Install Browser for Agent Browser…",
+              click: async () => {
+                const { response } = await dialog.showMessageBox(win, {
+                  type: "question",
+                  message: "Download Chrome for Testing for agent-browser?",
+                  detail: "About 190 MB, once per user, into your cache folder. The agent_browser tool needs it; your own browser is not touched.",
+                  buttons: ["Download", "Cancel"],
+                  defaultId: 0,
+                });
+                if (response !== 0) return;
+                let last = "";
+                const result = await agentClis.installBrowser({ onLine: (text) => (last = text) });
+                dialog.showMessageBox(win, {
+                  type: result.ok ? "info" : "warning",
+                  message: result.ok ? "agent-browser is ready." : "agent-browser install did not finish.",
+                  detail: (result.ok ? last : `${result.error || ""}\n${result.output.slice(-1200)}`).trim(),
                 });
               },
             },

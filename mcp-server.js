@@ -23,6 +23,7 @@
  */
 
 const local = require("./local-tools");
+const agentClis = require("./agent-clis");
 
 let VERSION = "0";
 try {
@@ -247,6 +248,10 @@ const TOOLS = [
     description: "What this server is allowed to do: workspace folders, blocked commands, output limits, and where the settings and audit log live.",
     inputSchema: { type: "object", properties: {} },
   },
+  // Agent CLIs — agent-desktop and agent-browser, one command per call. The
+  // schema and descriptions are the contract shared with Nexora Code and the
+  // web chat (agent-clis.js); the host that embeds this server approves calls.
+  ...agentClis.TOOL_DEFS.map((def) => ({ name: def.name, cli: def.cli, description: def.description, inputSchema: def.inputSchema })),
 ];
 
 const BY_NAME = new Map(TOOLS.map((tool) => [tool.name, tool]));
@@ -265,6 +270,9 @@ function summarize(fields) {
 
 function renderText(name, result) {
   const { ok, image, content, ...rest } = result;
+
+  // An agent CLI result is the CLI's own output; the exit code is already in it.
+  if (name.startsWith("agent_")) return content || (image ? "" : "done");
 
   if (name === "run_command") {
     const head = `exit ${rest.exitCode}${rest.timedOut ? " (timed out)" : ""} — ${rest.cwd}`;
@@ -286,16 +294,19 @@ function toResult(name, result) {
   // edit_file reports a failed match in the payload rather than by throwing, so
   // the model gets the marked-up diff — but it is still a failure, and saying so
   // is what stops it treating the edit as applied.
-  return { content: blocks, isError: Boolean(result.error) };
+  return { content: blocks, isError: Boolean(result.error) || result.isError === true };
 }
 
 async function callTool(name, args) {
   const tool = BY_NAME.get(name);
   if (!tool) return { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true };
+  const input = args && typeof args === "object" ? args : {};
   try {
-    const result = await local.runLocal(tool.action, args && typeof args === "object" ? args : {}, {
-      confirm: async () => true, // The MCP host owns the approval prompt.
-    });
+    // The MCP host owns the approval prompt, so consent is given here.
+    const confirm = async () => true;
+    const result = tool.cli
+      ? await agentClis.run(tool.cli, input.command, input.args, { stdin: input.stdin, timeoutMs: input.timeoutMs, confirm })
+      : await local.runLocal(tool.action, input, { confirm });
     return toResult(name, result);
   } catch (error) {
     return { content: [{ type: "text", text: String(error?.message || error) }], isError: true };

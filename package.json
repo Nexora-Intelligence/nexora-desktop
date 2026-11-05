@@ -8,7 +8,7 @@
     "start": "electron .",
     "dist": "electron-builder --mac",
     "dist:dir": "electron-builder --mac --dir",
-    "test": "node --test test/local-skills.js test/local-documents.js && electron test/ui.js && electron test/electron-behaviour.js"
+    "test": "node --test test/local-skills.js test/local-documents.js test/agent-clis.js && electron test/ui.js && electron test/electron-behaviour.js"
   },
   "devDependencies": {
     "electron": "^37.2.0",
@@ -34,7 +34,18 @@
       "share-preload.js",
       "share-picker.html",
       "documents/**",
-      "package.json"
+      "agent-clis.js",
+      "package.json",
+      "!node_modules/agent-desktop/bin/*linux*",
+      "!node_modules/agent-desktop/bin/*win32*",
+      "!node_modules/agent-desktop/bin/*darwin-x64*",
+      "!node_modules/agent-browser/bin/*linux*",
+      "!node_modules/agent-browser/bin/*win32*",
+      "!node_modules/agent-browser/bin/*darwin-x64*"
+    ],
+    "asarUnpack": [
+      "node_modules/agent-desktop/**",
+      "node_modules/agent-browser/**"
     ],
     "artifactName": "Nexora-Desktop-${arch}.${ext}",
     "mac": {
@@ -60,5 +71,9 @@
       ],
       "identity": null
     }
+  },
+  "dependencies": {
+    "agent-browser": "^0.41.2",
+    "agent-desktop": "^1.2.0"
   }
 }

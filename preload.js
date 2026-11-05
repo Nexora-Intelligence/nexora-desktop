@@ -26,6 +26,10 @@ contextBridge.exposeInMainWorld("nexoraLocal", {
   // Computer use: screenshot, action, batch, apps — drives the whole macOS
   // GUI, not just our own browser windows.
   computer: (action, input) => ipcRenderer.invoke("nexora:computer", { action, input }),
+  // Agent CLIs: one command of agent-desktop ("desktop", computer use through
+  // the accessibility tree) or agent-browser ("browser", a headless Chrome for
+  // Testing). The web app advertises them as agent_desktop / agent_browser.
+  agentCli: (cli, command, args, options) => ipcRenderer.invoke("nexora:agentCli", { cli, command, args, options }),
   // A native notification when long work finishes. Suppressed while the window
   // is focused, so it only ever reaches someone who walked away.
   notify: (payload) => ipcRenderer.invoke("nexora:notify", payload || {}),
