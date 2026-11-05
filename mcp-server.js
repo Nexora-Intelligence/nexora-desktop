@@ -55,7 +55,7 @@ const TOOLS = [
     name: "read_file",
     action: "read",
     description:
-      "Read a file, or a window of its lines. Images come back as images. A negative offset counts from the end, which is how you tail a log. Set isUrl:true to fetch a URL and get it as text instead.",
+      "Read a file, or a window of its lines. Images come back as images; Word, Excel and PowerPoint files and zip archives come back as text (tables as TSV, slides in order, an archive as a tree plus its text files). A negative offset counts from the end, which is how you tail a log. Set isUrl:true to fetch a URL and get it as text instead.",
     inputSchema: {
       type: "object",
       properties: {

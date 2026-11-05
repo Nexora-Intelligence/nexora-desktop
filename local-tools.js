@@ -22,6 +22,10 @@ const path = require("node:path");
  * command can still reach the whole machine, which is the point of a shell.
  */
 
+// Word, Excel, PowerPoint and zip readers — the runtime's `src/documents`,
+// compiled to CommonJS (see documents/SYNC.md there); never edited here.
+const documents = require("./documents/index");
+
 const MAX_OUTPUT = 100_000; // chars of any single result fed back to the model
 const MAX_READ_BYTES = 5_000_000;
 const MAX_IMAGE_BYTES = 3_500_000;
@@ -200,6 +204,16 @@ function readFileTool(input) {
     throw new Error(`File too large (${humanSize(stat.size)}; limit ${humanSize(MAX_READ_BYTES)}). Read a line range or search it instead.`);
   }
 
+  // Word, Excel, PowerPoint and zip: the shared readers turn the container
+  // into text — tables as TSV, slides in order, an archive as a tree plus its
+  // text files — and the line window applies to that text like any other.
+  // An old binary .doc or a bad archive is refused with the reason, which
+  // beats handing the model a screen of mojibake to "read".
+  if (documentKindFor(target)) {
+    const document = extractDocumentFile(target);
+    return { path: target, bytes: stat.size, document: document.kind, ...windowLines(document.text, input) };
+  }
+
   const raw = fs.readFileSync(target, "utf8");
   // A file with NUL bytes in the first few KB is binary; returning mojibake
   // helps nobody, and the model will happily "read" it and hallucinate.
@@ -207,6 +221,27 @@ function readFileTool(input) {
     return { path: target, bytes: stat.size, binary: true, content: `Binary file (${humanSize(stat.size)}) — not shown.` };
   }
 
+  return { path: target, bytes: stat.size, ...windowLines(raw, input) };
+}
+
+/** The document kind an extension announces (docx, xlsx, pptx, zip, or the legacy .doc/.xls/.ppt), or undefined for anything else. */
+function documentKindFor(target) {
+  return documents.documentKindFor(path.basename(target), "");
+}
+
+/** One file through the shared readers; a refusal keeps its wording, anything else names the file. */
+function extractDocumentFile(target) {
+  const name = path.basename(target);
+  try {
+    return documents.extractDocument(name, "", new Uint8Array(fs.readFileSync(target)));
+  } catch (error) {
+    if (error instanceof documents.DocumentRejected) throw new Error(error.message);
+    throw new Error(`${name} could not be read as a document: ${error.message}`);
+  }
+}
+
+/** The window of `raw` the caller asked for: `length` lines from `offset` (negative counts back from the end). */
+function windowLines(raw, input) {
   const lines = raw.split("\n");
   const limit = Math.min(Number(input.length) > 0 ? Math.floor(Number(input.length)) : policy().readLineLimit, 50_000);
   const asked = Number(input.offset);
@@ -216,8 +251,6 @@ function readFileTool(input) {
   const slice = lines.slice(start, end);
 
   return {
-    path: target,
-    bytes: stat.size,
     totalLines: lines.length,
     firstLine: start + 1,
     lastLine: end,
@@ -440,6 +473,9 @@ function listDirTool(input) {
 function fileInfoTool(input) {
   const target = resolvePath(input.path);
   const stat = fs.lstatSync(target);
+  // A document is a binary container: its "lines" are the text the reader
+  // renders, not the bytes on disk, so the kind is reported and lines are not.
+  const documentKind = stat.isFile() ? documentKindFor(target) : undefined;
   return {
     path: target,
     kind: stat.isDirectory() ? "folder" : stat.isSymbolicLink() ? "symlink" : "file",
@@ -448,7 +484,8 @@ function fileInfoTool(input) {
     created: stat.birthtime.toISOString(),
     modified: stat.mtime.toISOString(),
     mode: (stat.mode & 0o777).toString(8),
-    lines: stat.isFile() && stat.size < MAX_READ_BYTES ? fs.readFileSync(target, "utf8").split("\n").length : undefined,
+    document: documentKind && documentKind !== "legacy-office" ? documentKind : undefined,
+    lines: stat.isFile() && !documentKind && stat.size < MAX_READ_BYTES ? fs.readFileSync(target, "utf8").split("\n").length : undefined,
   };
 }
 

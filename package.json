@@ -1,6 +1,6 @@
 {
   "name": "nexora-desktop",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "private": true,
   "description": "Nexora Desktop — chat + coding agent with permission-gated local file & shell access, an agent-driven browser, and Nexora Live voice calls, in a native macOS shell.",
   "main": "main.js",
@@ -8,7 +8,7 @@
     "start": "electron .",
     "dist": "electron-builder --mac",
     "dist:dir": "electron-builder --mac --dir",
-    "test": "node --test test/local-skills.js && electron test/ui.js && electron test/electron-behaviour.js"
+    "test": "node --test test/local-skills.js test/local-documents.js && electron test/ui.js && electron test/electron-behaviour.js"
   },
   "devDependencies": {
     "electron": "^37.2.0",
@@ -33,6 +33,7 @@
       "schedule-prompt.html",
       "share-preload.js",
       "share-picker.html",
+      "documents/**",
       "package.json"
     ],
     "artifactName": "Nexora-Desktop-${arch}.${ext}",
