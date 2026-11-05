@@ -61,7 +61,8 @@ cmd="$1"; shift
 case "$cmd" in
   --version) echo "agent-browser 0.0.1"; exit 0 ;;
   snapshot) echo '- link "Learn more" [ref=e1]'; exit 0 ;;
-  screenshot) out="\${1:-${root}/shot-\$\$.png}"; printf '%s' '${PNG.toString("base64")}' | base64 -d > "$out"; echo "Screenshot saved to $out"; exit 0 ;;
+  screenshot) if [ -n "$FAKE_LEAK" ]; then echo "Screenshot saved to $FAKE_LEAK"; exit 0; fi; for last; do :; done; out="\${last:-${root}/shot-\$\$.png}"; printf '%s' '${PNG.toString("base64")}' | base64 -d > "$out"; echo "Screenshot saved to $out"; exit 0 ;;
+  upload) echo "uploaded $*"; exit 0 ;;
   fill) text=$(cat); echo "filled $* with <$text>"; exit 0 ;;
   open) echo "Error: Chrome for Testing is not installed. Run: agent-browser install" >&2; exit 1 ;;
   *) echo "ran $cmd $*"; exit 0 ;;
@@ -70,6 +71,14 @@ esac`
 
 const env = { NEXORA_AGENT_DESKTOP_BIN: desktopBin, NEXORA_AGENT_BROWSER_BIN: browserBin };
 const yes = async () => true;
+/** A folder with one readable file, for the workspace-fence case. */
+function docsRoot() {
+  const dir = path.join(root, "docs");
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, "notes.txt"), "hello\n");
+  return dir;
+}
+
 const run = (cli, command, args, options = {}) => clis.run(cli, command, args, { confirm: yes, env, searchPath: [], bundledRoots: [], ...options });
 
 test("the binary is found through the explicit env path first, then PATH-like dirs, and reported as missing otherwise", () => {
@@ -110,8 +119,11 @@ test("a command is passed through as argv and the envelope comes back verbatim",
 test("the refuse lists and the command-name rule are enforced before anything runs", async () => {
   for (const [cli, command] of [
     ["desktop", "mcp"],
+    ["desktop", "batch"],
     ["desktop", "key-down"],
     ["browser", "mcp"],
+    ["browser", "batch"],
+    ["browser", "flow"],
     ["browser", "install"],
     ["browser", "auth"],
     ["browser", "confirm"],
@@ -149,9 +161,16 @@ test("stdin text is piped, never placed in argv, and --stdin is added once for t
   assert.equal(data.argv, "@s1:e2 --stdin");
   const already = await run("desktop", "type", ["@s1:e2", "--stdin"], { stdin: "x" });
   assert.equal(JSON.parse(already.content).data.argv, "@s1:e2 --stdin");
-  // agent-browser has no --stdin: text travels as an argument, stdin is only piped.
-  const fill = await run("browser", "fill", ["@e2", "secret value"], { stdin: "ignored" });
-  assert.match(fill.content, /^filled @e2 secret value with <ignored>/);
+  // agent-browser has no --stdin: text travels as an argument, and stdin to it is refused rather than piped blind.
+  const fill = await run("browser", "fill", ["@e2", "secret value"]);
+  assert.match(fill.content, /^filled @e2 secret value with <>/);
+  const piped = await run("browser", "fill", ["@e2"], { stdin: "secret value" });
+  assert.equal(piped.isError, true);
+  assert.match(piped.content, /takes text as an argument/);
+  // Nor does any other agent-desktop command: stdin is text for the text commands only.
+  const click = await run("desktop", "click", ["@s1:e8"], { stdin: "x" });
+  assert.equal(click.isError, true);
+  assert.match(click.content, /only accepted by agent-desktop type, set-value, clipboard-set/);
   const huge = await run("desktop", "type", ["@s1:e2"], { stdin: "x".repeat(70_000) });
   assert.equal(huge.isError, true);
   assert.match(huge.content, /stdin/);
@@ -166,15 +185,81 @@ test("a desktop screenshot's base64 becomes an image block and leaves the envelo
   assert.match(out.content, /"png_base64":"<image/);
 });
 
-test("a browser screenshot is read from the path the CLI prints and returned as an image", async () => {
+test("a browser screenshot goes to a file the host chose, comes back as an image, and is removed", async () => {
   const out = await run("browser", "screenshot", []);
   assert.equal(out.ok, true);
   assert.equal(out.image.mediaType, "image/png");
-  assert.match(out.content, /Screenshot saved to/);
+  assert.match(out.content, /Screenshot saved to .*nexora-agent-clis\/shot-/);
+  // A path the model picked is dropped; a selector is kept in front of ours.
   const where = path.join(root, "custom.png");
-  const named = await run("browser", "screenshot", [where]);
+  const named = await run("browser", "screenshot", ["body", where]);
   assert.equal(named.image.mediaType, "image/png");
-  assert.ok(fs.existsSync(where), "a path the model chose is left in place");
+  assert.equal(fs.existsSync(where), false, "the model's path is not written");
+  assert.match(named.content, /Screenshot saved to .*shot-/);
+  await new Promise((r) => setTimeout(r, 50));
+  const dir = path.join(os.tmpdir(), "nexora-agent-clis");
+  assert.deepEqual(fs.readdirSync(dir).filter((f) => f.startsWith("shot-")), [], "the host's file is removed after it is read");
+});
+
+test("a path the CLI prints is never read back — only the host's own file is", async () => {
+  const leak = path.join(root, "private.png");
+  fs.writeFileSync(leak, PNG);
+  const out = await run("browser", "screenshot", [], { env: { ...env, FAKE_LEAK: leak } });
+  assert.equal(out.ok, true);
+  assert.equal(out.image, undefined);
+  assert.match(out.content, /private\.png/);
+});
+
+test("flags that reach the user's real browser or load code, local-file URLs, and debug artifacts are refused", async () => {
+  for (const [cli, command, args, why] of [
+    ["browser", "open", ["--cdp", "ws://127.0.0.1:9222"], /--cdp.*user's own browser/],
+    ["browser", "open", ["https://x.test", "--auto-connect"], /--auto-connect/],
+    ["browser", "open", ["--user-data-dir=/Users/me/Library/Application Support/Google/Chrome"], /--user-data-dir/],
+    ["browser", "open", ["https://x.test", "--init-script", "/tmp/x.js"], /--init-script/],
+    ["browser", "open", ["file:///etc/passwd"], /`file:` URLs are refused/],
+    ["browser", "open", [" FILE:///etc/passwd"], /`file:` URLs are refused/],
+    ["browser", "open", ["chrome://settings"], /`chrome:` URLs/],
+    ["desktop", "snapshot", ["--app", "Finder", "--trace", "/tmp/t.jsonl"], /--trace/],
+    ["desktop", "click", ["@s:e1", "--screenshot", "/tmp/x.html"], /--screenshot/],
+  ]) {
+    const out = await run(cli, command, args);
+    assert.equal(out.isError, true, `${cli} ${command} ${args.join(" ")}`);
+    assert.match(out.content, why, `${cli} ${command} ${args.join(" ")}`);
+  }
+  const fine = await run("browser", "open", ["https://example.com", "--headers", "{}"]);
+  assert.equal(fine.isError, true, "the fake 'open' always fails, but not for a refusal");
+  assert.doesNotMatch(fine.content, /refused/);
+});
+
+test("a local file handed to a web page stays inside the workspace folders, like a local read", async () => {
+  const policy = local.policy();
+  const before = policy.allowedDirectories;
+  policy.allowedDirectories = [docsRoot()];
+  try {
+    const outside = await run("browser", "upload", ["@e1", "/etc/hosts"]);
+    assert.equal(outside.isError, true);
+    assert.match(outside.content, /outside the Nexora workspace/);
+    const inside = await run("browser", "upload", ["@e1", path.join(docsRoot(), "notes.txt")]);
+    assert.equal(inside.ok, true);
+    assert.match(inside.content, /uploaded @e1/);
+  } finally {
+    policy.allowedDirectories = before;
+  }
+});
+
+test("the Local Tools switch and the blocked-command patterns cover the agent CLIs too", async () => {
+  const policy = local.policy();
+  policy.enabled = false;
+  try {
+    const out = await run("desktop", "snapshot", ["-i"]);
+    assert.equal(out.isError, true);
+    assert.match(out.content, /switched off in Nexora Desktop/);
+  } finally {
+    policy.enabled = true;
+  }
+  const blocked = await run("desktop", "snapshot", ["--app", "shutdown now"]);
+  assert.equal(blocked.isError, true);
+  assert.match(blocked.content, /blocked pattern "shutdown "/);
 });
 
 test("a failing command keeps the envelope, appends the stderr tail and the exit code, and is an error", async () => {
@@ -215,7 +300,10 @@ test("permission goes through confirm with the capability and the command line, 
   const out = await clis.run("desktop", "type", ["@s1:e8"], { confirm, env, searchPath: [], bundledRoots: [], stdin: "x" });
   assert.equal(out.isError, true);
   assert.match(out.content, /Permission denied/);
-  assert.deepEqual(asked, [{ capability: "agentDesktop", detail: "agent-desktop type @s1:e8 --stdin (+ 1 chars on stdin)" }]);
+  assert.deepEqual(asked, [{ capability: "agentDesktop", detail: 'agent-desktop type @s1:e8 --stdin (+ 1 chars on stdin: "x")' }]);
+  const long = [];
+  await clis.run("desktop", "type", ["@s1:e8"], { confirm: async (c, d) => (long.push(d), false), env, searchPath: [], bundledRoots: [], stdin: "line one\nline two " + "x".repeat(300) });
+  assert.match(long[0], /\(\+ 318 chars on stdin: "line one⏎line two x+"…\)$/);
   const browserAsk = [];
   await clis.run("browser", "snapshot", ["-i"], { confirm: async (c, d) => (browserAsk.push({ c, d }), true), env, searchPath: [], bundledRoots: [] });
   assert.deepEqual(browserAsk, [{ c: "agentBrowser", d: "agent-browser snapshot -i" }]);

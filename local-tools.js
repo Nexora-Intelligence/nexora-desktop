@@ -1326,8 +1326,10 @@ async function runLocal(action, input = {}, options = {}) {
 module.exports = {
   configure,
   policy,
-  // The audit line, so the agent CLIs log through the same file as every other local action.
+  // The audit line and the workspace fence, so the agent CLIs log through the
+  // same file and honour the same folders as every other local action.
   audit,
+  resolvePath,
   savePolicy,
   reloadPolicy,
   policyFile,

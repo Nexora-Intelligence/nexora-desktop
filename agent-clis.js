@@ -58,11 +58,17 @@ const CLIS = {
     guide: "skills get desktop",
     refused: {
       mcp: "it starts an MCP server and never returns",
+      batch: "it runs a list of commands under one approval and the per-command checks would not see them; run them one per call",
       "key-down": "the CLI refuses it without a daemon to release the key",
       "key-up": "the CLI refuses it without a daemon to release the key",
       "mouse-down": "the CLI refuses it without a daemon to release the button",
       "mouse-up": "the CLI refuses it without a daemon to release the button",
     },
+    // Debug artifacts are HTML renderings of the screen written to any path;
+    // the model has no use for them and the person would not see them.
+    refusedFlags: { "--trace": "it writes a trace file to a path of the model's choosing", "--trace-strict": "it writes a trace file to a path of the model's choosing", "--screenshot": "it writes a screen visualisation to a path of the model's choosing", "--debug": "it writes a screen visualisation to a path of the model's choosing" },
+    refusedArgPrefixes: {},
+    pathArgsConfined: new Set(),
     stdinCommands: new Set(["type", "set-value", "clipboard-set"]),
   },
   browser: {
@@ -87,9 +93,30 @@ const CLIS = {
       profiles: "the auth vault belongs to the user, not the model",
       confirm: "approvals are the user's to give",
       deny: "approvals are the user's to give",
+      batch: "it runs a list of commands under one approval and the per-command checks would not see them; run them one per call",
+      flow: "it replays a recorded command list the per-command checks would not see; run the steps one per call",
     },
-    // agent-browser takes text as an argument (`fill @e2 "text"`); stdin is
-    // still piped for `batch`, which reads its command list from it.
+    // Flags that would point the headless browser at the person's real Chrome
+    // (sessions and all), run a binary of the model's choosing, or load code.
+    refusedFlags: {
+      "--cdp": "it attaches to a running Chrome — the user's own browser and sessions",
+      "--auto-connect": "it attaches to a running Chrome — the user's own browser and sessions",
+      "--user-data-dir": "it opens a browser profile folder of the model's choosing",
+      "--profile": "it opens a browser profile of the model's choosing",
+      "--executable-path": "it runs a binary of the model's choosing",
+      "--browser-path": "it runs a binary of the model's choosing",
+      "--extension": "it loads code into the browser",
+      "--extensions": "it loads code into the browser",
+      "--load-extension": "it loads code into the browser",
+      "--init-script": "it injects a script file of the model's choosing into every page",
+    },
+    // URL schemes that read this machine instead of the web.
+    refusedArgPrefixes: { "file:": "the browser would read local files", "chrome:": "browser internals", "chrome-extension:": "browser internals", "javascript:": "use eval instead", "view-source:": "use get html instead" },
+    // A local file handed to a web page is a read of that file: it stays
+    // inside the workspace folders the local tools are confined to.
+    pathArgsConfined: new Set(["upload"]),
+    // agent-browser takes text as an argument (`fill @e2 "text"`); it has no
+    // --stdin, so stdin is never attached to it.
     stdinCommands: new Set(),
   },
 };
@@ -274,15 +301,49 @@ function validate(spec, command, args, stdin) {
     if (typeof arg !== "string") return { ok: false, reason: "args must be an array of strings." };
     if (arg.length > MAX_ARG_CHARS) return { ok: false, reason: `an argument may be at most ${MAX_ARG_CHARS} characters; pipe long text through stdin.` };
     if (arg.includes("\u0000")) return { ok: false, reason: "an argument may not contain a NUL byte." };
+    const flag = arg.split("=")[0];
+    if (flag.startsWith("--") && spec.refusedFlags[flag]) {
+      return { ok: false, reason: `\`${flag}\` is refused in Nexora Desktop: ${spec.refusedFlags[flag]}.` };
+    }
+    const lowered = arg.trim().toLowerCase();
+    for (const [prefix, why] of Object.entries(spec.refusedArgPrefixes)) {
+      if (lowered.startsWith(prefix)) return { ok: false, reason: `\`${prefix}\` URLs are refused in Nexora Desktop: ${why}.` };
+    }
   }
+  if (spec.pathArgsConfined.has(command)) {
+    // The same fence as a local read: outside the workspace folders is outside.
+    for (const arg of list) {
+      if (!(arg.startsWith("/") || arg.startsWith("~"))) continue;
+      try {
+        local.resolvePath(arg);
+      } catch (error) {
+        return { ok: false, reason: error.message };
+      }
+    }
+  }
+  const line = `${spec.name} ${command} ${list.join(" ")}`.toLowerCase();
+  const blocked = (local.policy().blockedCommands || []).find((pattern) => pattern && line.includes(String(pattern).toLowerCase()));
+  if (blocked) return { ok: false, reason: `the command line matches the blocked pattern "${blocked}" (Agent → Local Files → Edit Workspace & Policy…).` };
+
   let text;
   if (stdin !== undefined && stdin !== null) {
     if (typeof stdin !== "string") return { ok: false, reason: "stdin must be a string." };
     if (stdin.length > MAX_STDIN_CHARS) return { ok: false, reason: `stdin may be at most ${MAX_STDIN_CHARS} characters.` };
+    // stdin is text for the commands that read text; anywhere else it would
+    // be input the checks above never saw, so it is refused rather than piped.
+    if (!spec.stdinCommands.has(command)) {
+      const accepts = [...spec.stdinCommands];
+      return {
+        ok: false,
+        reason: accepts.length
+          ? `stdin is only accepted by ${spec.name} ${accepts.join(", ")} (as --stdin); pass anything else as an argument.`
+          : `${spec.name} takes text as an argument, not on stdin (e.g. fill @e2 "text").`,
+      };
+    }
     text = stdin;
   }
   const argv = [command, ...list];
-  if (text !== undefined && spec.stdinCommands.has(command) && !list.includes("--stdin")) argv.push("--stdin");
+  if (text !== undefined && !list.includes("--stdin")) argv.push("--stdin");
   return { ok: true, argv, stdin: text };
 }
 
@@ -337,18 +398,32 @@ function liftDesktopImage(stdout) {
   return image ? { image, content: JSON.stringify(envelope) } : {};
 }
 
-/** agent-browser writes the file and prints where; the first image path in the output is read back. */
-function liftBrowserImage(stdout) {
-  const match = /(\/[^\s"'<>]+\.(?:png|jpe?g))\b/i.exec(stdout);
-  if (!match) return {};
+const IMAGE_EXT = /\.(?:png|jpe?g)$/i;
+
+/**
+ * agent-browser's `screenshot [selector] [path]` writes a file. The path is
+ * ours, not the model's and not one scraped out of the output — the output
+ * can repeat page text, and page text could name any file on this machine.
+ * A positional that looks like an image path is replaced; a selector stays.
+ */
+function browserScreenshotArgv(argv) {
+  const dir = path.join(os.tmpdir(), "nexora-agent-clis");
+  fs.mkdirSync(dir, { recursive: true });
+  const file = path.join(dir, `shot-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.png`);
+  const kept = argv.filter((arg, i) => i === 0 || arg.startsWith("-") || !IMAGE_EXT.test(arg));
+  return { argv: [...kept, file], file };
+}
+
+/** Read the screenshot the host asked for, then remove it; nothing else is read. */
+function liftBrowserImage(file) {
   try {
-    const file = match[1];
     const stat = fs.statSync(file);
     if (!stat.isFile() || stat.size > MAX_IMAGE_BYTES) return {};
-    const mediaType = /\.png$/i.test(file) ? "image/png" : "image/jpeg";
-    return { image: { mediaType, dataBase64: fs.readFileSync(file).toString("base64") } };
+    return { image: { mediaType: "image/png", dataBase64: fs.readFileSync(file).toString("base64") } };
   } catch {
     return {};
+  } finally {
+    fs.rm(file, { force: true }, () => undefined);
   }
 }
 
@@ -393,9 +468,14 @@ function execute(file, argv, { stdin, timeoutMs, env }) {
   });
 }
 
+const STDIN_PREVIEW = 160;
+
+/** The command line for the dialog and the audit log — with the text that would be typed, because that is the part the person needs to see. */
 function describe(spec, argv, stdin) {
   const line = `${spec.name} ${argv.join(" ")}`.trim();
-  return stdin !== undefined ? `${line} (+ ${stdin.length} chars on stdin)` : line;
+  if (stdin === undefined) return line;
+  const preview = stdin.slice(0, STDIN_PREVIEW).replace(/\r?\n/g, "⏎");
+  return `${line} (+ ${stdin.length} chars on stdin: ${JSON.stringify(preview)}${stdin.length > STDIN_PREVIEW ? "…" : ""})`;
 }
 
 function audit(action, detail, ok) {
@@ -414,6 +494,9 @@ function audit(action, detail, ok) {
 async function run(cli, command, args = [], options = {}) {
   const spec = CLIS[cli];
   if (!spec) return refusal(String(cli), String(command ?? ""), `Unknown agent CLI: ${String(cli)}. Use "desktop" or "browser".`);
+  if (!local.policy().enabled) {
+    return refusal(cli, String(command ?? ""), "Local tools are switched off in Nexora Desktop (Agent → Local Files → Local Tools), and that switch covers the agent CLIs too.");
+  }
   const resolved = options.binary ? { path: options.binary, source: "override" } : resolveBinary(cli, options);
   if (!resolved) {
     return refusal(cli, String(command ?? ""), `${spec.name} is not installed on this machine, so this tool cannot run. Install it with: ${spec.install}. Nexora Desktop also ships a copy in newer builds; update the app if yours predates it.`);
@@ -429,16 +512,21 @@ async function run(cli, command, args = [], options = {}) {
   }
 
   const timeoutMs = clampTimeout(options.timeoutMs);
-  const outcome = await execute(resolved.path, checked.argv, { stdin: checked.stdin, timeoutMs, env: options.env && Object.keys(options.env).length ? { ...process.env, ...options.env } : process.env });
+  let argv = checked.argv;
+  let shot;
+  if (cli === "browser" && command === "screenshot") ({ argv, file: shot } = browserScreenshotArgv(argv));
+  const outcome = await execute(resolved.path, argv, { stdin: checked.stdin, timeoutMs, env: options.env && Object.keys(options.env).length ? { ...process.env, ...options.env } : process.env });
 
   let content = outcome.stdout;
   let image;
   if (command === "screenshot" && !outcome.timedOut && outcome.exitCode === 0) {
-    const lifted = cli === "desktop" ? liftDesktopImage(outcome.stdout) : liftBrowserImage(outcome.stdout);
+    const lifted = cli === "desktop" ? liftDesktopImage(outcome.stdout) : liftBrowserImage(shot);
     if (lifted.image) {
       image = lifted.image;
       if (lifted.content) content = lifted.content;
     }
+  } else if (shot) {
+    fs.rm(shot, { force: true }, () => undefined);
   }
   if (content.length > MAX_OUTPUT) {
     content = `${content.slice(0, MAX_OUTPUT)}\n[output truncated at ${MAX_OUTPUT.toLocaleString()} characters — narrow the command (-i, --compact, --root, a selector)]`;
