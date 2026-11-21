@@ -18,13 +18,15 @@ const path = require("node:path");
 const local = require("./local-tools");
 const computer = require("./computer-use");
 const agentClis = require("./agent-clis");
+const { createGate } = require("./permission-gate");
 
 /**
  * Nexora Desktop — a native macOS shell around Nexora Chat and Nexora Code,
  * served by the Nexora Console. Beyond dock presence and native downloads, the
  * desktop app gives the agent LOCAL capabilities the web can't: file access and
  * a real shell on this machine — every request gated by a native permission
- * dialog (Allow once / Always allow this session / Deny). The web UI advertises
+ * dialog (Allow / Always Allow this session, for requests a grant may cover /
+ * Deny). The web UI advertises
  * these as client tools; the runtime suspends its loop, this app executes, the
  * loop resumes.
  *
@@ -49,16 +51,20 @@ const TRUSTED_HOSTNAMES = new Set([...TRUSTED_ORIGINS].map((o) => new URL(o).hos
 let win = null;
 
 // ---------------------------------------------------------------------------
-// Permission model: one native dialog per request, with a per-session
-// "always allow" per capability (except delete — always confirmed).
+// Permission model: one native dialog per request. "Always Allow (this
+// session)" is remembered under the key the request carries — one command
+// (`shell:git status`), `write`, `move`, or the capability itself for the
+// browser and computer use — and is not offered at all for a request that must
+// ask every time: a compound or indirect command line, input to a process, a
+// write over a file this session did not write, a start-up or credentials
+// file, a delete. The rule lives in `permission-gate.js`; this is the dialog.
 // ---------------------------------------------------------------------------
-
-const sessionGrants = new Set(); // capabilities granted for this app session
 
 const CAPABILITY_LABEL = {
   shell: "run a shell command",
   read: "read a file",
   write: "write a file",
+  move: "move or rename a file or folder",
   list: "list a folder",
   search: "search your files",
   process: "run a program and talk to it",
@@ -70,25 +76,28 @@ const CAPABILITY_LABEL = {
   schedule: "schedule work to run later, on its own",
 };
 
-async function askPermission(capability, detail) {
-  if (capability !== "delete" && sessionGrants.has(capability)) return true;
-  const allowAlways = capability !== "delete";
+/** One request as a native dialog; answers "allow", "session" or "deny". Closing it is a denial. */
+async function showPermissionDialog({ capability, detail, sessionable, guarded }) {
+  const isDelete = capability === "delete";
+  const buttons = sessionable ? ["Allow", "Always Allow (this session)", "Deny"] : [isDelete ? "Delete" : "Allow", "Deny"];
+  const deny = buttons.length - 1;
   const { response } = await dialog.showMessageBox(win, {
-    type: capability === "delete" ? "warning" : "question",
+    type: isDelete || guarded ? "warning" : "question",
     title: "Nexora Desktop",
-    message: `The agent wants to ${CAPABILITY_LABEL[capability]}:`,
-    detail: String(detail).slice(0, 800),
-    buttons: allowAlways ? ["Allow", "Always Allow (this session)", "Deny"] : ["Delete", "Deny"],
-    defaultId: allowAlways ? 0 : 1,
-    cancelId: allowAlways ? 2 : 1,
+    message: `The agent wants to ${CAPABILITY_LABEL[capability] || "use this Mac"}:`,
+    detail,
+    buttons,
+    // A delete and a start-up or credentials file take a deliberate click.
+    defaultId: isDelete || guarded ? deny : 0,
+    cancelId: deny,
     noLink: true,
   });
-  if (allowAlways && response === 1) {
-    sessionGrants.add(capability);
-    return true;
-  }
-  return response === 0;
+  if (response === deny) return "deny";
+  return sessionable && response === 1 ? "session" : "allow";
 }
+
+const permissions = createGate({ ask: showPermissionDialog });
+const askPermission = permissions.confirm;
 
 const expandHome = local.expandHome;
 
@@ -2457,7 +2466,10 @@ function buildMenu() {
         {
           label: "Reset Local Permissions",
           click: () => {
-            sessionGrants.clear();
+            permissions.clear();
+            // And what this session has written: a later write over one of
+            // those files asks again, as it would in a fresh session.
+            local.forgetWritten();
           },
         },
         { type: "separator" },
@@ -2494,6 +2506,10 @@ app.whenReady().then(() => {
   app.userAgentFallback = browserUserAgent();
   guardSession(session.defaultSession, HOME.origin);
   wireScreenShare(session.defaultSession);
+  // A folder with things in it is moved to the Trash rather than unlinked, as
+  // Nexora Code does it. The local tools import no Electron, so the app hands
+  // them the one call that needs it; the MCP server has none and says so.
+  local.configure({ trash: (target) => shell.trashItem(target) });
   registerBridge();
   buildMenu();
   createWindow();

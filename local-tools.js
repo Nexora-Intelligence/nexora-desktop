@@ -20,11 +20,31 @@ const path = require("node:path");
  * always done, so adding a folder tightens rather than loosens. Every call is
  * appended to an audit log the user can read. Neither is a sandbox: a shell
  * command can still reach the whole machine, which is the point of a shell.
+ *
+ * What each call asks the user, and whether an "Always Allow" may cover it, is
+ * decided here too (`permissionFor`), by Nexora Code's rules: a grant is for
+ * one plain command, never for a line that chains or runs another program;
+ * replacing a file this session did not write, touching a shell start-up or
+ * credentials file, and typing into a running process ask every time. And
+ * what a command prints or a file holds is scrubbed of key material before a
+ * model sees it.
  */
 
 // Word, Excel, PowerPoint and zip readers — the runtime's `src/documents`,
 // compiled to CommonJS (see documents/SYNC.md there); never edited here.
 const documents = require("./documents/index");
+const { isSecretPath, scrubKeyMaterial, hasPrivateKey } = require("./documents/archive");
+// The command-line rules — Nexora Code's `localExec.ts`, compiled the same way.
+const guard = require("./command-guard");
+
+// The app's version, for the user-agent a URL read announces. A copy running
+// without its package.json (the MCP server can be) still works; it is cosmetic.
+let APP_VERSION = "0";
+try {
+  APP_VERSION = String(require("./package.json").version || APP_VERSION);
+} catch {
+  // Cosmetic, as above.
+}
 
 const MAX_OUTPUT = 100_000; // chars of any single result fed back to the model
 const MAX_READ_BYTES = 5_000_000;
@@ -47,6 +67,7 @@ const DEFAULT_POLICY = {
 let dataDir = path.join(os.homedir(), "Library", "Application Support", "Nexora Desktop");
 let host = "app";
 let cached = null;
+let trash = null;
 
 /**
  * Where settings and the audit log live, and who is calling.
@@ -62,6 +83,9 @@ function configure(options = {}) {
     cached = null;
   }
   if (options.host) host = String(options.host);
+  // How this host moves a path to the Trash (Electron's `shell.trashItem`), or
+  // null for a host that cannot — the bare-Node MCP server.
+  if ("trash" in options) trash = typeof options.trash === "function" ? options.trash : null;
 }
 
 function policyFile() {
@@ -108,7 +132,9 @@ function audit(action, detail, ok) {
   if (!policy().audit) return;
   try {
     fs.mkdirSync(dataDir, { recursive: true });
-    const line = JSON.stringify({ at: new Date().toISOString(), host, action, detail: String(detail).slice(0, 400), ok });
+    // Secrets that travel on a command line (--token=…, Authorization: Bearer …,
+    // user:pass@host, TOKEN=…) are blanked before the line is written anywhere.
+    const line = JSON.stringify({ at: new Date().toISOString(), host, action, detail: guard.scrubCommandSecrets(String(detail)).slice(0, 400), ok });
     fs.appendFileSync(path.join(dataDir, "local-tools.log"), `${line}\n`, "utf8");
   } catch {
     // Same reasoning as above.
@@ -158,6 +184,101 @@ function clamp(text, limit = MAX_OUTPUT) {
   const s = String(text ?? "");
   if (s.length <= limit) return s;
   return `${s.slice(0, limit)}\n[truncated — ${s.length - limit} more characters]`;
+}
+
+// ---------------------------------------------------------------------------
+// Guarded paths and scrubbing
+// ---------------------------------------------------------------------------
+
+/**
+ * Where a path really lands: the nearest existing ancestor through `realpath`,
+ * the rest appended — so a new file under a symlink, or a symlink that points
+ * at `~/.zshrc`, is judged as the file that will be touched.
+ */
+function realTarget(target) {
+  let existing = target;
+  const tail = [];
+  for (;;) {
+    try {
+      // The native call, because it also answers with the name as it is on
+      // disk: on a case-insensitive volume `~/.ZSHRC` is `~/.zshrc`.
+      const base = fs.realpathSync.native(existing);
+      return tail.length ? path.join(base, ...tail) : base;
+    } catch {
+      const parent = path.dirname(existing);
+      if (parent === existing) return target;
+      tail.unshift(path.basename(existing));
+      existing = parent;
+    }
+  }
+}
+
+/**
+ * Why a path is in a guarded class, or undefined. A start-up file (a shell's,
+ * git's, a package manager's — the table is Nexora Code's) is not secret to
+ * read, but a line written there runs later without anyone invoking it. A
+ * credentials file is guarded in both directions. Both the path as written and
+ * the path it resolves to are checked.
+ */
+function guardedClass(target, { reading = false } = {}) {
+  const both = [target, realTarget(target)];
+  // The table is lower-case and macOS volumes are case-insensitive by default:
+  // a new `~/.ZSHENV` is the file zsh reads, so the name is matched folded too.
+  if (!reading && both.some((p) => guard.isStartupFile(p) || guard.isStartupFile(p.toLowerCase()))) return "startup";
+  if (both.some((p) => isSecretPath(p) || isSecretPath(`${p}/`))) return "secret";
+  return undefined;
+}
+
+const GUARDED_NOTE = {
+  startup: "This is a start-up file: what is written there runs the next time a shell or tool opens — this asks every time.",
+  secret: "This looks like a credentials file — this asks every time.",
+};
+
+/**
+ * Files this app session has written or moved into place. Replacing one of
+ * them is a write the user has already been asked about; replacing any other
+ * existing file asks every time, under no grant. An edit does not put a file
+ * here: a session that may edit has not said it may replace.
+ */
+const written = new Set();
+
+function forgetWritten() {
+  written.clear();
+}
+
+/** Text from a file, as a model may see it: key material blanked, a private key withholding the whole of it. */
+function scrubText(text) {
+  return scrubKeyMaterial(String(text ?? ""));
+}
+
+/** Whether a file on disk holds a private key. Unreadable or oversized files answer no: nothing of them is shown either way. */
+function holdsPrivateKey(file) {
+  try {
+    if (fs.statSync(file).size > MAX_READ_BYTES) return false;
+    return hasPrivateKey(fs.readFileSync(file, "utf8"));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Search hits, each `path:line:text`, as a model may see them. A file that
+ * holds a private key gives up no line at all — a read withholds such a file
+ * whole, and a search must not be the way round that, one matching line at a
+ * time. Every other hit is scrubbed on its own, so a token on one line is
+ * redacted there and the rest of the results stand.
+ */
+function scrubHits(lines) {
+  const keyed = new Map(); // file -> holds a private key
+  return lines.map((line) => {
+    const where = /^(.*?):(\d+):/.exec(line);
+    if (where) {
+      if (!keyed.has(where[1])) keyed.set(where[1], holdsPrivateKey(where[1]));
+      if (keyed.get(where[1])) return `${where[0]}[withheld: this file contains a private key]`;
+    }
+    const scrubbed = scrubKeyMaterial(line);
+    return scrubbed.startsWith("[skipped:") ? `${where ? where[0] : ""}[withheld: this line carries a private key]` : scrubbed;
+  });
 }
 
 const IMAGE_TYPES = {
@@ -221,7 +342,9 @@ function readFileTool(input) {
     return { path: target, bytes: stat.size, binary: true, content: `Binary file (${humanSize(stat.size)}) — not shown.` };
   }
 
-  return { path: target, bytes: stat.size, ...windowLines(raw, input) };
+  // Key material is blanked before the text is windowed, the way Nexora Code
+  // reads a file: a token is redacted in place, a private key withholds the file.
+  return { path: target, bytes: stat.size, ...windowLines(scrubText(raw), input) };
 }
 
 /** The document kind an extension announces (docx, xlsx, pptx, zip, or the legacy .doc/.xls/.ppt), or undefined for anything else. */
@@ -263,7 +386,7 @@ function windowLines(raw, input) {
 async function readUrl(url) {
   const target = String(url);
   if (!/^https?:\/\//i.test(target)) throw new Error("isUrl needs an http or https URL.");
-  const response = await fetch(target, { headers: { "user-agent": "NexoraDesktop/1.4" }, redirect: "follow" });
+  const response = await fetch(target, { headers: { "user-agent": `NexoraDesktop/${APP_VERSION}` }, redirect: "follow" });
   const type = response.headers.get("content-type") || "";
   if (/^image\//.test(type)) {
     const buffer = Buffer.from(await response.arrayBuffer());
@@ -306,9 +429,13 @@ function writeFileTool(input) {
   const target = resolvePath(input.path);
   const content = String(input.content ?? "");
   const append = String(input.mode || "rewrite") === "append";
+  const existed = fs.existsSync(target);
   fs.mkdirSync(path.dirname(target), { recursive: true });
   if (append) fs.appendFileSync(target, content, "utf8");
   else fs.writeFileSync(target, content, "utf8");
+  // A file this call created or replaced is one the session has written; an
+  // append to a file that was already there is an edit, and does not count.
+  if (!append || !existed) written.add(realTarget(target));
 
   const lines = content.split("\n").length;
   const limit = policy().writeLineLimit;
@@ -406,7 +533,8 @@ function editFileTool(input) {
       error:
         `No exact match. The closest block is at line ${best.at} (${Math.round(best.score * 100)}% similar). ` +
         "Differences are marked {-yours-}{+the file's+}:\n\n" +
-        clamp(inlineDiff(oldText, best.text), 4000) +
+        // The file's side is scrubbed first: a near-miss must not be the way a redacted secret is read back.
+        clamp(inlineDiff(oldText, scrubText(best.text)), 4000) +
         "\n\nQuote the file's text exactly, then retry.",
     };
   }
@@ -502,6 +630,8 @@ function moveTool(input) {
     fs.cpSync(from, to, { recursive: true });
     fs.rmSync(from, { recursive: true, force: true });
   }
+  written.delete(realTarget(from));
+  written.add(realTarget(to));
   return { from, to };
 }
 
@@ -511,13 +641,30 @@ function mkdirTool(input) {
   return { path: target, created: true };
 }
 
-function deleteTool(input) {
+async function deleteTool(input) {
   const target = resolvePath(input.path);
   const home = os.homedir();
   if (target === "/" || target === home || path.dirname(target) === "/") throw new Error(`Refusing to delete ${target}.`);
   const stat = fs.lstatSync(target);
+  // A folder with things in it goes to the Trash when the host has one: a
+  // wrong guess about a whole tree should be something the user can undo. A
+  // file or an empty folder is unlinked, as before.
+  if (trashes(target, stat)) {
+    await trash(target);
+    return { path: target, deleted: true, kind: "folder", trashed: true };
+  }
   fs.rmSync(target, { recursive: true, force: false });
   return { path: target, deleted: true, kind: stat.isDirectory() ? "folder" : "file" };
+}
+
+/** Whether deleting this path means moving it to the Trash: a non-empty folder, on a host that can. */
+function trashes(target, stat) {
+  if (!trash || !stat.isDirectory()) return false;
+  try {
+    return fs.readdirSync(target).length > 0;
+  } catch {
+    return false;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -605,7 +752,7 @@ async function searchTool(input) {
   const out = await ripgrep(rgArgs, timeoutMs);
   if (out !== null) {
     const lines = out.split("\n").filter(Boolean);
-    return { root, mode, matches: lines.length, truncated: lines.length > max, content: clamp(lines.slice(0, max).join("\n")) };
+    return { root, mode, matches: lines.length, truncated: lines.length > max, content: clamp(scrubHits(lines.slice(0, max)).join("\n")) };
   }
 
   const test = input.literal === false ? new RegExp(pattern, input.caseSensitive ? "" : "i") : null;
@@ -632,7 +779,7 @@ async function searchTool(input) {
     },
     deadline
   );
-  return { root, mode, matches: hits.length, truncated: truncated || hits.length >= max, content: clamp(hits.join("\n")) };
+  return { root, mode, matches: hits.length, truncated: truncated || hits.length >= max, content: clamp(scrubHits(hits).join("\n")) };
 }
 
 // ---------------------------------------------------------------------------
@@ -641,12 +788,27 @@ async function searchTool(input) {
 
 const sessions = new Map(); // pid -> live process
 
+/**
+ * The denylist entry a command (or a line typed into a process) trips, or null.
+ *
+ * The user's list is matched against the line as written and as the shell
+ * will read it — quotes and escapes removed, `$HOME` spelled `~` — because a
+ * denylist that `r"m" -rf '/'` walks past is not one. The two patterns that
+ * are not on the list, wiping the root or the home folder, come from the
+ * guard's reading of the same normalised line.
+ */
 function blockedCommand(command) {
-  const lower = command.toLowerCase();
-  const hit = policy().blockedCommands.find((entry) => lower.includes(String(entry).toLowerCase()));
+  const raw = String(command ?? "");
+  const lines = [raw.toLowerCase(), guard.normaliseCommand(raw).toLowerCase()];
+  const hit = policy().blockedCommands.find((entry) => {
+    const needle = String(entry).toLowerCase();
+    return lines.some((line) => line.includes(needle));
+  });
   if (hit) return hit;
-  if (/\brm\s+(-[a-z]*\s+)*-?[a-z]*[rf][a-z]*\s+\/(\s|$)/.test(lower)) return "rm -rf /";
-  return null;
+  const builtin = guard.blockedCommand(raw);
+  // The guard's own copy of the default list is not consulted: the list the
+  // user can read and edit in local-settings.json is the one that applies.
+  return builtin && !guard.BLOCKED_COMMAND_PATTERNS.includes(builtin) ? builtin : null;
 }
 
 function appendOutput(session, chunk) {
@@ -684,10 +846,40 @@ function drain(session, timeoutMs, quietMs) {
   });
 }
 
+/** How far back a read re-scans, so a secret that straddles two reads is still caught whole. */
+const SCRUB_WINDOW = 4_096;
+const TAINTED_NOTE = "[output withheld: this process printed a private key]";
+
+function commonPrefixLength(a, b) {
+  const max = Math.min(a.length, b.length);
+  let i = 0;
+  while (i < max && a.charCodeAt(i) === b.charCodeAt(i)) i += 1;
+  return i;
+}
+
+/**
+ * The new output since the last read, scrubbed over a stable window: the last
+ * `SCRUB_WINDOW` characters already handed out are re-scanned together with
+ * what is new, and only what that scan yields beyond the window's own scrub is
+ * returned — so a token split across two reads is redacted on the second, not
+ * leaked in halves. A private key anywhere in the buffer taints the session:
+ * every later read is one line saying so.
+ */
 function takeOutput(session) {
   const fresh = session.buffer.slice(session.cursor);
+  let output = "";
+  if (session.tainted || hasPrivateKey(session.buffer)) {
+    session.tainted = true;
+    output = fresh ? TAINTED_NOTE : "";
+  } else if (fresh) {
+    const start = Math.max(0, session.cursor - SCRUB_WINDOW);
+    const seen = session.buffer.slice(start, session.cursor);
+    const before = guard.scrubOutput(seen);
+    const after = guard.scrubOutput(seen + fresh);
+    output = clamp(after.slice(commonPrefixLength(before, after)));
+  }
   session.cursor = session.buffer.length;
-  return clamp(fresh);
+  return output;
 }
 
 function describe(session) {
@@ -749,9 +941,14 @@ async function processTool(input) {
   // `process` over MCP, and naming the wrong one sends the agent hunting.
   if (!session) throw new Error(`No process ${input.pid}. Use the process tool with op:"list" to see what is running.`);
 
-  if (op === "input") {
+  if (isProcessInput(op)) {
     if (!session.running) throw new Error(`Process ${session.pid} has exited (code ${session.exitCode}).`);
-    session.child.stdin.write(`${String(input.text ?? "")}\n`);
+    // Stdin is a command line to whatever is listening — a shell, a REPL — so
+    // it meets the same denylist a command does.
+    const text = processInputText(input);
+    const blocked = blockedCommand(text);
+    if (blocked) throw new Error(`Refusing to send input containing "${blocked}".`);
+    session.child.stdin.write(`${text}\n`);
     await drain(session, Math.min(Number(input.timeoutMs) || 15_000, 120_000), Number(input.quietMs) || 400);
     return { ...describe(session), output: takeOutput(session) };
   }
@@ -766,7 +963,20 @@ async function processTool(input) {
     sessions.delete(session.pid);
     return out;
   }
-  throw new Error(`Unknown process op: ${op}. Use start, input, read, kill or list.`);
+  throw new Error(`Unknown process op: ${op}. Use start, write, read, kill or list.`);
+}
+
+/**
+ * Sending a line to a process has two spellings. The web chat and Nexora Code
+ * advertise `op:"write"` with the text in `input`; this app's MCP server
+ * advertises `op:"input"` with the text in `text`. Both are the same call.
+ */
+function isProcessInput(op) {
+  return op === "input" || op === "write";
+}
+
+function processInputText(input) {
+  return String(input.text ?? input.input ?? "");
 }
 
 /** Nothing the agent started should outlive the app. Returns how many died. */
@@ -800,8 +1010,10 @@ function shellTool(input) {
           cwd,
           exitCode: error ? Number(error.code ?? 1) || 1 : 0,
           timedOut: Boolean(error && error.killed),
-          stdout: clamp(stdout),
-          stderr: clamp(stderr),
+          // Scrubbed before it is clamped: tokens and labelled secrets are
+          // blanked in place, and a private key withholds the stream it is in.
+          stdout: clamp(guard.scrubOutput(String(stdout ?? ""))),
+          stderr: clamp(guard.scrubOutput(String(stderr ?? ""))),
         });
       }
     );
@@ -1218,7 +1430,7 @@ const CAPABILITY = {
   list: "list",
   info: "list",
   search: "search",
-  move: "write",
+  move: "move",
   mkdir: "write",
   delete: "delete",
   process: "process",
@@ -1237,7 +1449,9 @@ function detailFor(action, input) {
     case "shell":
       return `${input.command}\n\nin ${input.cwd || os.homedir()}`;
     case "process":
-      return input.op === "start" ? `${input.command}\n\nin ${input.cwd || os.homedir()}` : `${input.op} on process ${input.pid ?? ""}`;
+      if (input.op === "start") return `${input.command}\n\nin ${input.cwd || os.homedir()}`;
+      if (isProcessInput(input.op)) return `${processInputText(input)}\n\nto process ${input.pid ?? ""}`;
+      return `${input.op} on process ${input.pid ?? ""}`;
     case "readMany":
       return (Array.isArray(input.paths) ? input.paths : []).join("\n");
     case "search":
@@ -1257,12 +1471,188 @@ function detailFor(action, input) {
   }
 }
 
+const SHELL_DEFAULT_TIMEOUT_MS = 120_000;
+const SHELL_MAX_TIMEOUT_MS = 600_000;
+
+const WRITE_COVERS =
+  "writing and editing files — not replacing a file this session did not write, not start-up or credentials files, not moves or deletes";
+const MOVE_COVERS = "moving and renaming files — not onto a file this session did not write, not start-up or credentials files";
+const REPLACES_NOTE = "Replaces a file this session did not write — this asks every time.";
+
+/** What an "Always Allow" on a command's key covers, in words: the key is the program and its first word, or the program alone when that word is a flag. */
+function commandCovers(key) {
+  const words = key.slice("shell:".length);
+  return words.includes(" ")
+    ? `plain “${words} …” commands (nothing chained, piped or redirected)`
+    : `plain “${words}” commands with no arguments or a flag first (nothing chained, piped or redirected)`;
+}
+
+/**
+ * A command line — one shot, or the start of a long-lived process — as a
+ * permission request. The grant key is the program and its first word
+ * (`shell:git push`), shared by both, and a line that is more than one simple
+ * command, or whose program runs whatever it is handed, is never sessionable:
+ * `git status; rm -rf ~` starts with `git status`. Null when the tool will
+ * refuse the line anyway, so nobody is asked to approve what cannot run.
+ */
+function commandRequest(capability, input) {
+  const command = String(input.command ?? "").trim();
+  if (!command || blockedCommand(command)) return null;
+  const once = guard.onceReason(command);
+  const key = guard.commandKey(command);
+  const timeout = Number(input.timeoutMs);
+  const budget =
+    capability === "shell" && timeout > SHELL_DEFAULT_TIMEOUT_MS
+      ? `\n(may run up to ${Math.round(Math.min(timeout, SHELL_MAX_TIMEOUT_MS) / 1000)} s — more than the default ${SHELL_DEFAULT_TIMEOUT_MS / 1000} s)`
+      : "";
+  return {
+    capability,
+    detail: `${command}\n\nin ${input.cwd || os.homedir()}${budget}`,
+    key,
+    sessionable: once === undefined,
+    ...(once ? { note: once } : { covers: commandCovers(key) }),
+  };
+}
+
+/** A guarded path as a request: that one path, every time, under no grant. */
+function guardedRequest(capability, detail, target, cls) {
+  return { capability, detail, key: `guarded:${target}`, sessionable: false, guarded: true, note: GUARDED_NOTE[cls] };
+}
+
+/**
+ * What one action asks the user: `{ capability, detail, key, sessionable,
+ * note, covers, guarded }`, or null when it needs no consent (or will be
+ * refused before it could use any). `capability` picks the dialog's wording;
+ * `key` is what an "Always Allow" is remembered under; `sessionable: false`
+ * means no grant may cover it and none is offered. See `permission-gate.js`.
+ */
+function permissionFor(action, input) {
+  const gate = CAPABILITY[action];
+  const capability = typeof gate === "function" ? gate(input) : gate;
+  if (!capability) return null;
+  const detail = detailFor(action, input);
+
+  switch (action) {
+    case "shell":
+      return commandRequest("shell", input);
+
+    case "process": {
+      const op = String(input.op || "list");
+      if (op === "start") return commandRequest("process", input);
+      if (isProcessInput(op)) {
+        const session = sessions.get(Number(input.pid));
+        const text = processInputText(input);
+        if (!session || !session.running || blockedCommand(text)) return null;
+        return {
+          capability,
+          detail: `${text}\n\nto process ${session.pid} (${session.command})`,
+          key: `process:${session.pid}:input`,
+          sessionable: false,
+          // One approved line is not a licence for whatever the next line says.
+          note: "Types into a running program — this asks every time.",
+        };
+      }
+      // Reading, listing and stopping what was started: one grant, as before.
+      return { capability, detail, covers: "reading, listing and stopping the programs the agent started — not starting one, not typing into one" };
+    }
+
+    case "read": {
+      if (input.isUrl) return { capability, detail: String(input.path || input.url || "") };
+      const target = expandHome(input.path);
+      const cls = guardedClass(target, { reading: true });
+      return cls ? guardedRequest(capability, detail, target, cls) : { capability, detail };
+    }
+
+    case "readMany": {
+      const paths = (Array.isArray(input.paths) ? input.paths : []).slice(0, 25);
+      const secret = paths.filter((p) => {
+        try {
+          return guardedClass(expandHome(p), { reading: true });
+        } catch {
+          return false;
+        }
+      });
+      if (!secret.length) return { capability, detail };
+      return {
+        capability,
+        detail,
+        key: `guarded:${secret.join("|")}`,
+        sessionable: false,
+        guarded: true,
+        note: `Includes ${secret.length === 1 ? "a credentials file" : "credentials files"} (${secret.join(", ")}) — this asks every time.`,
+      };
+    }
+
+    case "write": {
+      const target = expandHome(input.path);
+      const content = String(input.content ?? "");
+      const append = String(input.mode || "rewrite") === "append";
+      const exists = fs.existsSync(target);
+      const what = `${content.split("\n").length} lines, ${content.length.toLocaleString("en-US")} characters — ${
+        !exists ? "a new file" : append ? "appended to the existing file" : "replaces the existing file"
+      }`;
+      const shown = `${input.path}\n\n${what}`;
+      const cls = guardedClass(target);
+      if (cls) return guardedRequest(capability, shown, target, cls);
+      // Replacing a file this session has not touched is not "the edit I allowed".
+      if (exists && !append && !written.has(realTarget(target))) {
+        return { capability, detail: shown, key: `overwrite:${target}`, sessionable: false, note: REPLACES_NOTE };
+      }
+      return { capability, detail: shown, key: "write", covers: WRITE_COVERS };
+    }
+
+    case "edit":
+    case "mkdir": {
+      const target = expandHome(input.path);
+      const cls = guardedClass(target);
+      return cls ? guardedRequest(capability, detail, target, cls) : { capability, detail, key: "write", covers: WRITE_COVERS };
+    }
+
+    case "move": {
+      const from = expandHome(input.from);
+      const to = expandHome(input.to);
+      const replacing = fs.existsSync(to);
+      const shown = `${detail}${replacing ? " (replacing it)" : ""}`;
+      const cls = guardedClass(from) || guardedClass(to);
+      if (cls) return guardedRequest(capability, shown, `${from}|${to}`, cls);
+      if (replacing && !written.has(realTarget(to))) {
+        return { capability, detail: shown, key: `overwrite:${to}`, sessionable: false, note: REPLACES_NOTE };
+      }
+      // A move has its own key: a session that may edit files has not said it may rearrange them.
+      return { capability, detail: shown, key: "move", covers: MOVE_COVERS };
+    }
+
+    case "delete": {
+      const target = expandHome(input.path);
+      const cls = guardedClass(target);
+      let shown = detail;
+      try {
+        const stat = fs.lstatSync(target);
+        if (stat.isDirectory()) {
+          const entries = fs.readdirSync(target).length;
+          const fate = trashes(target, stat) ? " — goes to the Trash" : entries ? " — deleted for good, with everything in it" : "";
+          shown = `${detail}/ (folder, ${entries} entr${entries === 1 ? "y" : "ies"}${fate})`;
+        }
+      } catch {
+        // Missing or unreadable: the tool says so after the dialog, as before.
+      }
+      // A delete is never sessionable; a guarded path adds why it matters.
+      return { capability, detail: shown, sessionable: false, ...(cls ? { guarded: true, note: GUARDED_NOTE[cls] } : {}) };
+    }
+
+    default:
+      return { capability, detail };
+  }
+}
+
 /**
  * Run one local action.
  *
- * `confirm(capability, detail)` is the host's permission gate: Electron shows a
- * native dialog, the MCP server relies on Claude Desktop's own approval and
- * passes a function that returns true. Either way the call is logged.
+ * `confirm(capability, detail, request)` is the host's permission gate:
+ * Electron shows a native dialog and remembers an "Always Allow" under
+ * `request.key` when `request.sessionable` allows one; the MCP server relies
+ * on Claude Desktop's own approval and passes a function that returns true.
+ * Either way the call is logged.
  */
 async function runLocal(action, input = {}, options = {}) {
   const confirm = options.confirm || (async () => true);
@@ -1270,10 +1660,16 @@ async function runLocal(action, input = {}, options = {}) {
     throw new Error("Local tools are switched off in Nexora Desktop (Agent → Local Files → Local Tools).");
   }
 
-  const gate = CAPABILITY[action];
-  if (gate === undefined) throw new Error(`Unknown local action: ${action}`);
-  const capability = typeof gate === "function" ? gate(input) : gate;
-  if (capability && !(await confirm(capability, detailFor(action, input)))) {
+  if (CAPABILITY[action] === undefined) throw new Error(`Unknown local action: ${action}`);
+  let request;
+  try {
+    request = permissionFor(action, input);
+  } catch (error) {
+    // A call too malformed to describe (no path at all) fails as the tool would have failed it.
+    audit(action, `${detailFor(action, input)} — ${error.message}`, false);
+    throw error;
+  }
+  if (request && !(await confirm(request.capability, request.detail, request))) {
     audit(action, detailFor(action, input), false);
     throw new Error("Permission denied by the user.");
   }
@@ -1335,6 +1731,10 @@ module.exports = {
   policyFile,
   auditFile,
   runLocal,
+  // What an action would ask, without asking — the gate's input, and how a
+  // test or a host can see the rule without a dialog.
+  permissionFor,
+  forgetWritten,
   killAllProcesses,
   expandHome,
   // Scheduling: the store and the clock live here, the ticker lives in the app.

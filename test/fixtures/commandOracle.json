@@ -1,0 +1,3552 @@
+{
+ "explicit": [
+  {
+   "line": "a&&b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a&&b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a||b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a||b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a;b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a;b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a|b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a|b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a|&b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a|&b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a&b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a&b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a &",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\nb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\rb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\r\nb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\\\nb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a\\",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\\",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a\\",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\\\\",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a\\"
+    ],
+    "key": "shell:a\\",
+    "asks": false
+   }
+  },
+  {
+   "line": "\\",
+   "verdict": {
+    "ok": false,
+    "key": "shell:\\",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \\",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "\\\n",
+   "verdict": {
+    "ok": false,
+    "key": "shell:\\",
+    "asks": true
+   }
+  },
+  {
+   "line": "$(a)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$(a)",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a `b`",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a ${b}",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"$b\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"`b`\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"$(b)\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a '$(b)'",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "$(b)"
+    ],
+    "key": "shell:a $(b)",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \"\\$b\"",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "$b"
+    ],
+    "key": "shell:a $b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \"\\`b\\`\"",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "`b`"
+    ],
+    "key": "shell:a `b`",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\$b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "$b"
+    ],
+    "key": "shell:a $b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\`b\\`",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "`b`"
+    ],
+    "key": "shell:a `b`",
+    "asks": false
+   }
+  },
+  {
+   "line": "a <(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a <<EOF",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a <<<b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a <<-EOF",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>&1",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a &>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a &>>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a <b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >|b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 1>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 10>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a>b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a>&2",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a>&2",
+    "asks": true
+   }
+  },
+  {
+   "line": "a<&0",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a<&0",
+    "asks": true
+   }
+  },
+  {
+   "line": "a<>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a<>b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a '2'>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \\2>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a x2>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "2>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2>b",
+    "asks": true
+   }
+  },
+  {
+   "line": "2>b a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2>b",
+    "asks": true
+   }
+  },
+  {
+   "line": "2> b a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2>",
+    "asks": true
+   }
+  },
+  {
+   "line": "1>&2",
+   "verdict": {
+    "ok": false,
+    "key": "shell:1>&2",
+    "asks": true
+   }
+  },
+  {
+   "line": "0<a b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:0<a",
+    "asks": true
+   }
+  },
+  {
+   "line": "9",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "9"
+    ],
+    "key": "shell:9",
+    "asks": false
+   }
+  },
+  {
+   "line": "9 a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "9",
+     "a"
+    ],
+    "key": "shell:9 a",
+    "asks": false
+   }
+  },
+  {
+   "line": "12",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "12"
+    ],
+    "key": "shell:12",
+    "asks": false
+   }
+  },
+  {
+   "line": "a 2",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "2"
+    ],
+    "key": "shell:a 2",
+    "asks": false
+   }
+  },
+  {
+   "line": "a 2 b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "2",
+     "b"
+    ],
+    "key": "shell:a 2",
+    "asks": false
+   }
+  },
+  {
+   "line": "2 > b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 'b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $'b'",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $\"b\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $'\\n'",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a '",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "'",
+   "verdict": {
+    "ok": false,
+    "key": "shell:'",
+    "asks": true
+   }
+  },
+  {
+   "line": "\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:\"",
+    "asks": true
+   }
+  },
+  {
+   "line": "''",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     ""
+    ],
+    "key": "shell:",
+    "asks": false
+   }
+  },
+  {
+   "line": "\"\"",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     ""
+    ],
+    "key": "shell:",
+    "asks": false
+   }
+  },
+  {
+   "line": "'' a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "",
+     "a"
+    ],
+    "key": "shell: a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ''",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ""
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "",
+     "b"
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "''''",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     ""
+    ],
+    "key": "shell:",
+    "asks": false
+   }
+  },
+  {
+   "line": "a #b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "#b"
+    ],
+    "key": "shell:a #b",
+    "asks": false
+   }
+  },
+  {
+   "line": "#a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "#a"
+    ],
+    "key": "shell:#a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a#b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a#b"
+    ],
+    "key": "shell:a#b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a # ; b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "A=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "A=1",
+   "verdict": {
+    "ok": false,
+    "key": "shell:",
+    "asks": true
+   }
+  },
+  {
+   "line": "A= a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "_A=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "A1=2 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "1A=2 a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "1A=2",
+     "a"
+    ],
+    "key": "shell:1A=2 a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a A=1",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "A=1"
+    ],
+    "key": "shell:a A=1",
+    "asks": false
+   }
+  },
+  {
+   "line": "'A'=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:'A'=1",
+    "asks": true
+   }
+  },
+  {
+   "line": "A\\=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:A\\=1",
+    "asks": true
+   }
+  },
+  {
+   "line": "\"A=1\" a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:\"A=1\"",
+    "asks": true
+   }
+  },
+  {
+   "line": "A+=1 a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "A+=1",
+     "a"
+    ],
+    "key": "shell:A+=1 a",
+    "asks": false
+   }
+  },
+  {
+   "line": "A[0]=1 a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "A[0]=1",
+     "a"
+    ],
+    "key": "shell:A[0]=1 a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a=b=c d",
+   "verdict": {
+    "ok": false,
+    "key": "shell:d",
+    "asks": true
+   }
+  },
+  {
+   "line": "ABCDEFGHIJKLMNOPQRSTUVWXYZ=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "ABCDEFGHIJKLMNOPQRSTUVWXYZABCDEFGHIJKLMNOPQRSTUVWXYZ=1 a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": {
+    "sha256": "2f93b0c5d7ca7e2e",
+    "length": 5006
+   },
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a {b,c}",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "{a,b}",
+   "verdict": {
+    "ok": false,
+    "key": "shell:{a,b}",
+    "asks": true
+   }
+  },
+  {
+   "line": "a {b..c}",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a *",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "*"
+    ],
+    "key": "shell:a *",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ?",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "?"
+    ],
+    "key": "shell:a ?",
+    "asks": false
+   }
+  },
+  {
+   "line": "a [b]",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "[b]"
+    ],
+    "key": "shell:a [b]",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ~",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "~"
+    ],
+    "key": "shell:a ~",
+    "asks": false
+   }
+  },
+  {
+   "line": "~/a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "~/a"
+    ],
+    "key": "shell:~/a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ~b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "~b"
+    ],
+    "key": "shell:a ~b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ~+",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "~+"
+    ],
+    "key": "shell:a ~+",
+    "asks": false
+   }
+  },
+  {
+   "line": "a !b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "!b"
+    ],
+    "key": "shell:a !b",
+    "asks": false
+   }
+  },
+  {
+   "line": "!a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "!a"
+    ],
+    "key": "shell:!a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a !!",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "!!"
+    ],
+    "key": "shell:a !!",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ^b^c",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "^b^c"
+    ],
+    "key": "shell:a ^b^c",
+    "asks": false
+   }
+  },
+  {
+   "line": "a b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a​b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a​b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a​;b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a​;b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a﻿b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "﻿a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "ab",
+   "verdict": {
+    "ok": false,
+    "key": "shell:ab",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\u000bb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\fb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\tb",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "b"
+    ],
+    "key": "shell:a b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a\t;b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\u0000b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a\u0000b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\u0000;b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a\u0000;b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\u001bb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a\u001bb",
+    "asks": true
+   }
+  },
+  {
+   "line": "ab",
+   "verdict": {
+    "ok": false,
+    "key": "shell:ab",
+    "asks": true
+   }
+  },
+  {
+   "line": "a‮b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a‮b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a；b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a；b"
+    ],
+    "key": "shell:a；b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a＆＆b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a＆＆b"
+    ],
+    "key": "shell:a＆＆b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a｜b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a｜b"
+    ],
+    "key": "shell:a｜b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a -- b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "--",
+     "b"
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a --",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "--"
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "-- a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "--",
+     "a"
+    ],
+    "key": "shell:-- a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a -c b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "-c",
+     "b"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "sh -c x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh",
+     "-c",
+     "x"
+    ],
+    "key": "shell:sh",
+    "asks": true
+   }
+  },
+  {
+   "line": "bash -c 'x; y'",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "bash",
+     "-c",
+     "x; y"
+    ],
+    "key": "shell:bash",
+    "asks": true
+   }
+  },
+  {
+   "line": "node -e x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "node",
+     "-e",
+     "x"
+    ],
+    "key": "shell:node",
+    "asks": true
+   }
+  },
+  {
+   "line": "python3 -c x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "python3",
+     "-c",
+     "x"
+    ],
+    "key": "shell:python3",
+    "asks": true
+   }
+  },
+  {
+   "line": "python3.12 x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "python3.12",
+     "x"
+    ],
+    "key": "shell:python3.12 x",
+    "asks": true
+   }
+  },
+  {
+   "line": "/usr/bin/env a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "/usr/bin/env",
+     "a"
+    ],
+    "key": "shell:/usr/bin/env a",
+    "asks": true
+   }
+  },
+  {
+   "line": "env a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "env",
+     "a"
+    ],
+    "key": "shell:env a",
+    "asks": true
+   }
+  },
+  {
+   "line": "sudo a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sudo",
+     "a"
+    ],
+    "key": "shell:sudo a",
+    "asks": true
+   }
+  },
+  {
+   "line": "xargs a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "xargs",
+     "a"
+    ],
+    "key": "shell:xargs a",
+    "asks": true
+   }
+  },
+  {
+   "line": "find . -exec a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "find",
+     ".",
+     "-exec",
+     "a"
+    ],
+    "key": "shell:find .",
+    "asks": true
+   }
+  },
+  {
+   "line": "find . -name x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "find",
+     ".",
+     "-name",
+     "x"
+    ],
+    "key": "shell:find .",
+    "asks": false
+   }
+  },
+  {
+   "line": "fd -x a",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "fd",
+     "-x",
+     "a"
+    ],
+    "key": "shell:fd",
+    "asks": true
+   }
+  },
+  {
+   "line": "git -c a=b log",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "git",
+     "-c",
+     "a=b",
+     "log"
+    ],
+    "key": "shell:git",
+    "asks": true
+   }
+  },
+  {
+   "line": "a --eval=x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "--eval=x"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a --exec=x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "--exec=x"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a --command=x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "--command=x"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a /c x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "/c",
+     "x"
+    ],
+    "key": "shell:a /c",
+    "asks": true
+   }
+  },
+  {
+   "line": "cmd /c x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "cmd",
+     "/c",
+     "x"
+    ],
+    "key": "shell:cmd /c",
+    "asks": true
+   }
+  },
+  {
+   "line": "pwsh -Command x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "pwsh",
+     "-Command",
+     "x"
+    ],
+    "key": "shell:pwsh",
+    "asks": true
+   }
+  },
+  {
+   "line": "a -Command x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "-Command",
+     "x"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a -command x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "-command",
+     "x"
+    ],
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a -C x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "-C",
+     "x"
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "a -E x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "-E",
+     "x"
+    ],
+    "key": "shell:a",
+    "asks": false
+   }
+  },
+  {
+   "line": "NODE.EXE x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "NODE.EXE",
+     "x"
+    ],
+    "key": "shell:NODE.EXE x",
+    "asks": true
+   }
+  },
+  {
+   "line": "Sh x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "Sh",
+     "x"
+    ],
+    "key": "shell:Sh x",
+    "asks": true
+   }
+  },
+  {
+   "line": "/bin/SH x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "/bin/SH",
+     "x"
+    ],
+    "key": "shell:/bin/SH x",
+    "asks": true
+   }
+  },
+  {
+   "line": "a\\b\\sh x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "absh",
+     "x"
+    ],
+    "key": "shell:absh x",
+    "asks": false
+   }
+  },
+  {
+   "line": "./sh x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "./sh",
+     "x"
+    ],
+    "key": "shell:./sh x",
+    "asks": true
+   }
+  },
+  {
+   "line": "sh",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh"
+    ],
+    "key": "shell:sh",
+    "asks": true
+   }
+  },
+  {
+   "line": "'sh' x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh",
+     "x"
+    ],
+    "key": "shell:sh x",
+    "asks": true
+   }
+  },
+  {
+   "line": "s\\h x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh",
+     "x"
+    ],
+    "key": "shell:sh x",
+    "asks": true
+   }
+  },
+  {
+   "line": "\"s\"h x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh",
+     "x"
+    ],
+    "key": "shell:sh x",
+    "asks": true
+   }
+  },
+  {
+   "line": "sh.exe",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh.exe"
+    ],
+    "key": "shell:sh.exe",
+    "asks": true
+   }
+  },
+  {
+   "line": "sh.EXE x",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh.EXE",
+     "x"
+    ],
+    "key": "shell:sh.EXE x",
+    "asks": true
+   }
+  },
+  {
+   "line": "sh.exe.exe",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "sh.exe.exe"
+    ],
+    "key": "shell:sh.exe.exe",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ;",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "; a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:;",
+    "asks": true
+   }
+  },
+  {
+   "line": "a ;; b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a & b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a && ",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "&& a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:&&",
+    "asks": true
+   }
+  },
+  {
+   "line": "| a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:|",
+    "asks": true
+   }
+  },
+  {
+   "line": "a |",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "(a)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:(a)",
+    "asks": true
+   }
+  },
+  {
+   "line": "( a )",
+   "verdict": {
+    "ok": false,
+    "key": "shell:(",
+    "asks": true
+   }
+  },
+  {
+   "line": "a (b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a )",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": ") a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:)",
+    "asks": true
+   }
+  },
+  {
+   "line": "a (",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "{ a; }",
+   "verdict": {
+    "ok": false,
+    "key": "shell:{",
+    "asks": true
+   }
+  },
+  {
+   "line": "{ a }",
+   "verdict": {
+    "ok": false,
+    "key": "shell:{",
+    "asks": true
+   }
+  },
+  {
+   "line": "a }",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $((1+1))",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $[1]",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $ b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "$",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $?",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $$",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $!",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $#",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $@",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $*",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $-",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $0",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $1",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"$\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"$ \"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"a$\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "$(a) )",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$(a)",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b) ; c",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b)) c",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b)(c)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >(b) )",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "(a) $(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:(a)",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b) ) ; c",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a ) $(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $( ( b ) )",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $(b) $(c))",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \")\"",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ")"
+    ],
+    "key": "shell:a )",
+    "asks": false
+   }
+  },
+  {
+   "line": "a $(')')",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "$(a))b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$(a))b",
+    "asks": true
+   }
+  },
+  {
+   "line": ")",
+   "verdict": {
+    "ok": false,
+    "key": "shell:)",
+    "asks": true
+   }
+  },
+  {
+   "line": "))",
+   "verdict": {
+    "ok": false,
+    "key": "shell:))",
+    "asks": true
+   }
+  },
+  {
+   "line": "a))",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a))",
+    "asks": true
+   }
+  },
+  {
+   "line": "$())",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$())",
+    "asks": true
+   }
+  },
+  {
+   "line": "$()",
+   "verdict": {
+    "ok": false,
+    "key": "shell:$()",
+    "asks": true
+   }
+  },
+  {
+   "line": "<()",
+   "verdict": {
+    "ok": false,
+    "key": "shell:<()",
+    "asks": true
+   }
+  },
+  {
+   "line": ">()",
+   "verdict": {
+    "ok": false,
+    "key": "shell:>()",
+    "asks": true
+   }
+  },
+  {
+   "line": "a $()b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \\;b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ";b"
+    ],
+    "key": "shell:a ;b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\; b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ";",
+     "b"
+    ],
+    "key": "shell:a ;",
+    "asks": false
+   }
+  },
+  {
+   "line": "a ';' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ";",
+     "b"
+    ],
+    "key": "shell:a ;",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \";\" b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ";",
+     "b"
+    ],
+    "key": "shell:a ;",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '&&' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "&&",
+     "b"
+    ],
+    "key": "shell:a &&",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \"|\" b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "|",
+     "b"
+    ],
+    "key": "shell:a |",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\| b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "|",
+     "b"
+    ],
+    "key": "shell:a |",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '>' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ">",
+     "b"
+    ],
+    "key": "shell:a >",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\> b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     ">",
+     "b"
+    ],
+    "key": "shell:a >",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \"<\" b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "<",
+     "b"
+    ],
+    "key": "shell:a <",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '(' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "(",
+     "b"
+    ],
+    "key": "shell:a (",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\( b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "(",
+     "b"
+    ],
+    "key": "shell:a (",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '`' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "`",
+     "b"
+    ],
+    "key": "shell:a `",
+    "asks": false
+   }
+  },
+  {
+   "line": "a '$' b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "$",
+     "b"
+    ],
+    "key": "shell:a $",
+    "asks": false
+   }
+  },
+  {
+   "line": "a \\\nb",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a '\n' b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"\n\" b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a \"\\\nb\"",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "",
+   "verdict": {
+    "ok": false,
+    "key": "shell:",
+    "asks": true
+   }
+  },
+  {
+   "line": " ",
+   "verdict": {
+    "ok": false,
+    "key": "shell:",
+    "asks": true
+   }
+  },
+  {
+   "line": "\t",
+   "verdict": {
+    "ok": false,
+    "key": "shell:",
+    "asks": true
+   }
+  },
+  {
+   "line": " ",
+   "verdict": {
+    "ok": false,
+    "key": "shell:",
+    "asks": true
+   }
+  },
+  {
+   "line": "​",
+   "verdict": {
+    "ok": false,
+    "key": "shell:​",
+    "asks": true
+   }
+  },
+  {
+   "line": {
+    "sha256": "d7edbe085e81e74a",
+    "length": 200002
+   },
+   "verdict": {
+    "sha256": "ea8b0c5f83947711",
+    "length": 400051
+   }
+  },
+  {
+   "line": {
+    "sha256": "0ec5d068b9329905",
+    "length": 100004
+   },
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": {
+    "sha256": "290e313a31293c5c",
+    "length": 100005
+   },
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": {
+    "sha256": "bfad77dc8ae193e1",
+    "length": 200006
+   },
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": {
+    "sha256": "188a10d1b61917f2",
+    "length": 200004
+   },
+   "verdict": {
+    "sha256": "16bb8a5c0d8fa45f",
+    "length": 200057
+   }
+  },
+  {
+   "line": "a 2\\>b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "2>b"
+    ],
+    "key": "shell:a 2>b",
+    "asks": false
+   }
+  },
+  {
+   "line": "a 2'>'b",
+   "verdict": {
+    "ok": true,
+    "argv": [
+     "a",
+     "2>b"
+    ],
+    "key": "shell:a 2>b",
+    "asks": false
+   }
+  },
+  {
+   "line": "2>",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2>",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a >",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a <",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2<",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "22>>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:22>>b",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>>",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>&",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>|b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2>(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2<(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "2>(b)",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2>(b)",
+    "asks": true
+   }
+  },
+  {
+   "line": "2<(b) a",
+   "verdict": {
+    "ok": false,
+    "key": "shell:2<(b)",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2<<b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2<<<b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2&>b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2&",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2|b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2;b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2$b",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  },
+  {
+   "line": "a 2`b`",
+   "verdict": {
+    "ok": false,
+    "key": "shell:a",
+    "asks": true
+   }
+  }
+ ],
+ "generated": {
+  "tokens": [
+   "a",
+   "sh",
+   "2",
+   " ",
+   "\t",
+   "\n",
+   "\r",
+   ";",
+   "&",
+   "|",
+   "<",
+   ">",
+   "(",
+   ")",
+   "`",
+   "$",
+   "{",
+   "}",
+   "'",
+   "\"",
+   "\\",
+   "#",
+   "=",
+   "-c",
+   "A=",
+   " ",
+   "\u0000",
+   "~",
+   "*"
+  ],
+  "depth": 3,
+  "lines": 25260,
+  "simple": 1833,
+  "buckets": {
+   "[]": "95b9592755236ce1",
+   "[\"a\"]": "3bb6cd70d4871ae2",
+   "[\"a\",\"a\"]": "106d3dab3ea9bd98",
+   "[\"a\",\"sh\"]": "2bd7b4c97225c9a8",
+   "[\"a\",\"2\"]": "64249e0384a9a520",
+   "[\"a\",\" \"]": "3442e63864199c09",
+   "[\"a\",\"\\t\"]": "3442e63864199c09",
+   "[\"a\",\"\\n\"]": "618488ce148d83ea",
+   "[\"a\",\"\\r\"]": "618488ce148d83ea",
+   "[\"a\",\";\"]": "2d663f14b2de1a1c",
+   "[\"a\",\"&\"]": "160d2ba74708d500",
+   "[\"a\",\"|\"]": "105db0d712c68189",
+   "[\"a\",\"<\"]": "112ad073bb612f4a",
+   "[\"a\",\">\"]": "6be564d93e1bda09",
+   "[\"a\",\"(\"]": "e9a8e9fd5f5b6637",
+   "[\"a\",\")\"]": "1b9ff039f193ff57",
+   "[\"a\",\"`\"]": "5e3e4691354747a8",
+   "[\"a\",\"$\"]": "d652334cd64e658f",
+   "[\"a\",\"{\"]": "07d2150a6eb1c2f1",
+   "[\"a\",\"}\"]": "366baa822dacf91c",
+   "[\"a\",\"'\"]": "8fb52766f89b1c1d",
+   "[\"a\",\"\\\"\"]": "efb80e94e60c06ff",
+   "[\"a\",\"\\\\\"]": "50fbe8184170cc2c",
+   "[\"a\",\"#\"]": "cb03e8f96b30aede",
+   "[\"a\",\"=\"]": "3188a9a40b3008ee",
+   "[\"a\",\"-c\"]": "9432897a7b889057",
+   "[\"a\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"a\",\" \"]": "618488ce148d83ea",
+   "[\"a\",\"\\u0000\"]": "ebea6116d9477410",
+   "[\"a\",\"~\"]": "c992f4bbcdc072d5",
+   "[\"a\",\"*\"]": "194a9c60e31ac41e",
+   "[\"sh\"]": "4e6930d36567cdf9",
+   "[\"sh\",\"a\"]": "ec1d665a8f7aa82b",
+   "[\"sh\",\"sh\"]": "5193f4dbcbe699e4",
+   "[\"sh\",\"2\"]": "e3ab4aed74fe502e",
+   "[\"sh\",\" \"]": "3f3f785c741e2fce",
+   "[\"sh\",\"\\t\"]": "3f3f785c741e2fce",
+   "[\"sh\",\"\\n\"]": "bc6853539fbf66f9",
+   "[\"sh\",\"\\r\"]": "bc6853539fbf66f9",
+   "[\"sh\",\";\"]": "ce9547e5a137edce",
+   "[\"sh\",\"&\"]": "b5458351bdfc17aa",
+   "[\"sh\",\"|\"]": "f5554804c8ec0e27",
+   "[\"sh\",\"<\"]": "b1b80f80d7907d7f",
+   "[\"sh\",\">\"]": "2f7a32b87ac2b285",
+   "[\"sh\",\"(\"]": "c444efb256c227cc",
+   "[\"sh\",\")\"]": "5746887f099dc8a8",
+   "[\"sh\",\"`\"]": "a3030d9f71945fef",
+   "[\"sh\",\"$\"]": "318215f3b32a80f6",
+   "[\"sh\",\"{\"]": "d4ddd24721495a08",
+   "[\"sh\",\"}\"]": "ceaafe8d315f7725",
+   "[\"sh\",\"'\"]": "094ae3beceb1aac8",
+   "[\"sh\",\"\\\"\"]": "0cfb44ad288da033",
+   "[\"sh\",\"\\\\\"]": "ca15e8f9705da1fd",
+   "[\"sh\",\"#\"]": "8026a026de48932a",
+   "[\"sh\",\"=\"]": "3188a9a40b3008ee",
+   "[\"sh\",\"-c\"]": "5fb89b27840a85e1",
+   "[\"sh\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"sh\",\" \"]": "bc6853539fbf66f9",
+   "[\"sh\",\"\\u0000\"]": "32c0920b2fb19692",
+   "[\"sh\",\"~\"]": "c4f8efad859e94c0",
+   "[\"sh\",\"*\"]": "f55adc105d00a754",
+   "[\"2\"]": "f243fbe5e0e287d9",
+   "[\"2\",\"a\"]": "9fbb8ab5d2acc2b2",
+   "[\"2\",\"sh\"]": "b4e1894202cb4e4b",
+   "[\"2\",\"2\"]": "00e3c2ecd3e3a5fe",
+   "[\"2\",\" \"]": "40505741f171444e",
+   "[\"2\",\"\\t\"]": "40505741f171444e",
+   "[\"2\",\"\\n\"]": "9124524c77312bf2",
+   "[\"2\",\"\\r\"]": "9124524c77312bf2",
+   "[\"2\",\";\"]": "9aba8d3044b0b1a3",
+   "[\"2\",\"&\"]": "88ef1fc814e15b5c",
+   "[\"2\",\"|\"]": "1e94032199f5b344",
+   "[\"2\",\"<\"]": "5866ccef29a45035",
+   "[\"2\",\">\"]": "a446312c43971b4c",
+   "[\"2\",\"(\"]": "5afc1f136dde0aab",
+   "[\"2\",\")\"]": "ab60350cba651606",
+   "[\"2\",\"`\"]": "2b5f2192b6b4052e",
+   "[\"2\",\"$\"]": "9aa7c07c0527c4d1",
+   "[\"2\",\"{\"]": "a6e859e8883872f8",
+   "[\"2\",\"}\"]": "12278cd98f919d2a",
+   "[\"2\",\"'\"]": "22eb53b4d619fa93",
+   "[\"2\",\"\\\"\"]": "b0d499da36b036ba",
+   "[\"2\",\"\\\\\"]": "eb5237a1c24e8746",
+   "[\"2\",\"#\"]": "4583d5a3d2be118c",
+   "[\"2\",\"=\"]": "e4d004eec92171bf",
+   "[\"2\",\"-c\"]": "a2157dfd8d51218c",
+   "[\"2\",\"A=\"]": "897c4173543a0f2d",
+   "[\"2\",\" \"]": "9124524c77312bf2",
+   "[\"2\",\"\\u0000\"]": "998bbebc5ea24b5e",
+   "[\"2\",\"~\"]": "6013b4276254b8a3",
+   "[\"2\",\"*\"]": "e0ee34f4a89a66c3",
+   "[\" \"]": "95b9592755236ce1",
+   "[\" \",\"a\"]": "588c43de1a21a84b",
+   "[\" \",\"sh\"]": "b6a3da4d56392d24",
+   "[\" \",\"2\"]": "8389e2ac4ab1675d",
+   "[\" \",\" \"]": "5b11b32a32fa4af3",
+   "[\" \",\"\\t\"]": "5b11b32a32fa4af3",
+   "[\" \",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\" \",\";\"]": "022495f0fdbeee1e",
+   "[\" \",\"&\"]": "e36dd38f45a28450",
+   "[\" \",\"|\"]": "b5a1f211000a9216",
+   "[\" \",\"<\"]": "8d03d867593abf80",
+   "[\" \",\">\"]": "b6960ba2564a5f90",
+   "[\" \",\"(\"]": "dbad07656e6dd44c",
+   "[\" \",\")\"]": "40d1851324d73dd7",
+   "[\" \",\"`\"]": "90b659885db04230",
+   "[\" \",\"$\"]": "869181a08a31f7c9",
+   "[\" \",\"{\"]": "8b5a789e099dcd52",
+   "[\" \",\"}\"]": "b121073c0c743317",
+   "[\" \",\"'\"]": "2dea7a1068f16bef",
+   "[\" \",\"\\\"\"]": "5ee060bc048a9f48",
+   "[\" \",\"\\\\\"]": "a62b4299823251df",
+   "[\" \",\"#\"]": "e753b2fea0c2a2de",
+   "[\" \",\"=\"]": "bf921463b1a5c346",
+   "[\" \",\"-c\"]": "69aa6be378859498",
+   "[\" \",\"A=\"]": "3188a9a40b3008ee",
+   "[\" \",\" \"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\u0000\"]": "693240a9b98e394f",
+   "[\" \",\"~\"]": "2df3b667bb3befbd",
+   "[\" \",\"*\"]": "afc263377f646c82",
+   "[\"\\t\"]": "95b9592755236ce1",
+   "[\"\\t\",\"a\"]": "588c43de1a21a84b",
+   "[\"\\t\",\"sh\"]": "b6a3da4d56392d24",
+   "[\"\\t\",\"2\"]": "8389e2ac4ab1675d",
+   "[\"\\t\",\" \"]": "5b11b32a32fa4af3",
+   "[\"\\t\",\"\\t\"]": "5b11b32a32fa4af3",
+   "[\"\\t\",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\"\\t\",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\"\\t\",\";\"]": "022495f0fdbeee1e",
+   "[\"\\t\",\"&\"]": "e36dd38f45a28450",
+   "[\"\\t\",\"|\"]": "b5a1f211000a9216",
+   "[\"\\t\",\"<\"]": "8d03d867593abf80",
+   "[\"\\t\",\">\"]": "b6960ba2564a5f90",
+   "[\"\\t\",\"(\"]": "dbad07656e6dd44c",
+   "[\"\\t\",\")\"]": "40d1851324d73dd7",
+   "[\"\\t\",\"`\"]": "90b659885db04230",
+   "[\"\\t\",\"$\"]": "869181a08a31f7c9",
+   "[\"\\t\",\"{\"]": "8b5a789e099dcd52",
+   "[\"\\t\",\"}\"]": "b121073c0c743317",
+   "[\"\\t\",\"'\"]": "2dea7a1068f16bef",
+   "[\"\\t\",\"\\\"\"]": "5ee060bc048a9f48",
+   "[\"\\t\",\"\\\\\"]": "a62b4299823251df",
+   "[\"\\t\",\"#\"]": "e753b2fea0c2a2de",
+   "[\"\\t\",\"=\"]": "bf921463b1a5c346",
+   "[\"\\t\",\"-c\"]": "69aa6be378859498",
+   "[\"\\t\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"\\t\",\" \"]": "1f3d52f33ee65e04",
+   "[\"\\t\",\"\\u0000\"]": "693240a9b98e394f",
+   "[\"\\t\",\"~\"]": "2df3b667bb3befbd",
+   "[\"\\t\",\"*\"]": "afc263377f646c82",
+   "[\"\\n\"]": "95b9592755236ce1",
+   "[\"\\n\",\"a\"]": "cecb44bffa0ad40a",
+   "[\"\\n\",\"sh\"]": "f98fdb8171298e4d",
+   "[\"\\n\",\"2\"]": "e73c1366b5604edb",
+   "[\"\\n\",\" \"]": "1f3d52f33ee65e04",
+   "[\"\\n\",\"\\t\"]": "1f3d52f33ee65e04",
+   "[\"\\n\",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\"\\n\",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\"\\n\",\";\"]": "022495f0fdbeee1e",
+   "[\"\\n\",\"&\"]": "e36dd38f45a28450",
+   "[\"\\n\",\"|\"]": "b5a1f211000a9216",
+   "[\"\\n\",\"<\"]": "8d03d867593abf80",
+   "[\"\\n\",\">\"]": "b6960ba2564a5f90",
+   "[\"\\n\",\"(\"]": "dbad07656e6dd44c",
+   "[\"\\n\",\")\"]": "40d1851324d73dd7",
+   "[\"\\n\",\"`\"]": "90b659885db04230",
+   "[\"\\n\",\"$\"]": "869181a08a31f7c9",
+   "[\"\\n\",\"{\"]": "8b5a789e099dcd52",
+   "[\"\\n\",\"}\"]": "b121073c0c743317",
+   "[\"\\n\",\"'\"]": "827a0b073d24b568",
+   "[\"\\n\",\"\\\"\"]": "56415c2f0d44f735",
+   "[\"\\n\",\"\\\\\"]": "657d74fd1bc719f9",
+   "[\"\\n\",\"#\"]": "b8c75c404cf4629b",
+   "[\"\\n\",\"=\"]": "cb68e0d537781068",
+   "[\"\\n\",\"-c\"]": "0b751b21890efc0c",
+   "[\"\\n\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"\\n\",\" \"]": "1f3d52f33ee65e04",
+   "[\"\\n\",\"\\u0000\"]": "693240a9b98e394f",
+   "[\"\\n\",\"~\"]": "70c10c7531cb74b1",
+   "[\"\\n\",\"*\"]": "b601b4f208e1f2a7",
+   "[\"\\r\"]": "95b9592755236ce1",
+   "[\"\\r\",\"a\"]": "cecb44bffa0ad40a",
+   "[\"\\r\",\"sh\"]": "f98fdb8171298e4d",
+   "[\"\\r\",\"2\"]": "e73c1366b5604edb",
+   "[\"\\r\",\" \"]": "1f3d52f33ee65e04",
+   "[\"\\r\",\"\\t\"]": "1f3d52f33ee65e04",
+   "[\"\\r\",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\"\\r\",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\"\\r\",\";\"]": "022495f0fdbeee1e",
+   "[\"\\r\",\"&\"]": "e36dd38f45a28450",
+   "[\"\\r\",\"|\"]": "b5a1f211000a9216",
+   "[\"\\r\",\"<\"]": "8d03d867593abf80",
+   "[\"\\r\",\">\"]": "b6960ba2564a5f90",
+   "[\"\\r\",\"(\"]": "dbad07656e6dd44c",
+   "[\"\\r\",\")\"]": "40d1851324d73dd7",
+   "[\"\\r\",\"`\"]": "90b659885db04230",
+   "[\"\\r\",\"$\"]": "869181a08a31f7c9",
+   "[\"\\r\",\"{\"]": "8b5a789e099dcd52",
+   "[\"\\r\",\"}\"]": "b121073c0c743317",
+   "[\"\\r\",\"'\"]": "827a0b073d24b568",
+   "[\"\\r\",\"\\\"\"]": "56415c2f0d44f735",
+   "[\"\\r\",\"\\\\\"]": "657d74fd1bc719f9",
+   "[\"\\r\",\"#\"]": "b8c75c404cf4629b",
+   "[\"\\r\",\"=\"]": "cb68e0d537781068",
+   "[\"\\r\",\"-c\"]": "0b751b21890efc0c",
+   "[\"\\r\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"\\r\",\" \"]": "1f3d52f33ee65e04",
+   "[\"\\r\",\"\\u0000\"]": "693240a9b98e394f",
+   "[\"\\r\",\"~\"]": "70c10c7531cb74b1",
+   "[\"\\r\",\"*\"]": "b601b4f208e1f2a7",
+   "[\";\"]": "43046e230f0e80c0",
+   "[\";\",\"a\"]": "56b57fe60f034aa9",
+   "[\";\",\"sh\"]": "abccb9b009ea99d7",
+   "[\";\",\"2\"]": "3a6ec377f2d5387e",
+   "[\";\",\" \"]": "fee9af49274ebdc0",
+   "[\";\",\"\\t\"]": "fee9af49274ebdc0",
+   "[\";\",\"\\n\"]": "fee9af49274ebdc0",
+   "[\";\",\"\\r\"]": "fee9af49274ebdc0",
+   "[\";\",\";\"]": "02ce49f2842f1398",
+   "[\";\",\"&\"]": "44b54856f4931aa8",
+   "[\";\",\"|\"]": "a98e6d941174b57f",
+   "[\";\",\"<\"]": "99271237fd48eaa6",
+   "[\";\",\">\"]": "752eb5d772d0c945",
+   "[\";\",\"(\"]": "d3cd78ce9d83adeb",
+   "[\";\",\")\"]": "2550dbbabe129263",
+   "[\";\",\"`\"]": "9d41d60563c44854",
+   "[\";\",\"$\"]": "3b7dcb2a07d25a10",
+   "[\";\",\"{\"]": "8a3522dc913cf2a7",
+   "[\";\",\"}\"]": "b4e60a493681f631",
+   "[\";\",\"'\"]": "83ca4ea0f97296a8",
+   "[\";\",\"\\\"\"]": "7fb918b23a9681bc",
+   "[\";\",\"\\\\\"]": "ded6ef6415a5957d",
+   "[\";\",\"#\"]": "9a549105e6bb9c8d",
+   "[\";\",\"=\"]": "6a0c2203b19f08d3",
+   "[\";\",\"-c\"]": "b31e936be71c1c36",
+   "[\";\",\"A=\"]": "7c1aabf1ac920776",
+   "[\";\",\" \"]": "fee9af49274ebdc0",
+   "[\";\",\"\\u0000\"]": "544871b4383e8557",
+   "[\";\",\"~\"]": "6a585f88498f45ad",
+   "[\";\",\"*\"]": "cad747ae26d83368",
+   "[\"&\"]": "ff4e92661516f0fa",
+   "[\"&\",\"a\"]": "7ef2ca985f0df552",
+   "[\"&\",\"sh\"]": "068efea613e37d4e",
+   "[\"&\",\"2\"]": "b36d2ff1c2d2a50d",
+   "[\"&\",\" \"]": "79ed24c30ada1445",
+   "[\"&\",\"\\t\"]": "79ed24c30ada1445",
+   "[\"&\",\"\\n\"]": "79ed24c30ada1445",
+   "[\"&\",\"\\r\"]": "79ed24c30ada1445",
+   "[\"&\",\";\"]": "5b59529d54c248ad",
+   "[\"&\",\"&\"]": "684a0dbc274ac8a6",
+   "[\"&\",\"|\"]": "c1460a8e8734126c",
+   "[\"&\",\"<\"]": "3a4ac3c2a284565f",
+   "[\"&\",\">\"]": "a5014b1493760069",
+   "[\"&\",\"(\"]": "5a8813575b0e17cd",
+   "[\"&\",\")\"]": "e015f9e86e29bce1",
+   "[\"&\",\"`\"]": "f09f4a642c6dd306",
+   "[\"&\",\"$\"]": "598790ebbfcff599",
+   "[\"&\",\"{\"]": "caa912a98aa0facc",
+   "[\"&\",\"}\"]": "66512abed05a235b",
+   "[\"&\",\"'\"]": "afd4c2bd0f71d2cb",
+   "[\"&\",\"\\\"\"]": "1c602ee5bcb01790",
+   "[\"&\",\"\\\\\"]": "bfcbd871be9c9e66",
+   "[\"&\",\"#\"]": "3c1c46145b39cb2a",
+   "[\"&\",\"=\"]": "ebc926227a927e21",
+   "[\"&\",\"-c\"]": "59c6741312003ec0",
+   "[\"&\",\"A=\"]": "c3a3f16bdfcfadb0",
+   "[\"&\",\" \"]": "79ed24c30ada1445",
+   "[\"&\",\"\\u0000\"]": "4c7c1cca1e81e474",
+   "[\"&\",\"~\"]": "a24cc27f2eaa9abb",
+   "[\"&\",\"*\"]": "a10999c1802d62fd",
+   "[\"|\"]": "c9a1f3e97433b973",
+   "[\"|\",\"a\"]": "0454c5f8c7f5d2e3",
+   "[\"|\",\"sh\"]": "a6e76dc758513a7f",
+   "[\"|\",\"2\"]": "6b5af7a587e10c5a",
+   "[\"|\",\" \"]": "284e320e4304fb56",
+   "[\"|\",\"\\t\"]": "284e320e4304fb56",
+   "[\"|\",\"\\n\"]": "284e320e4304fb56",
+   "[\"|\",\"\\r\"]": "284e320e4304fb56",
+   "[\"|\",\";\"]": "550fbaccc9e7736c",
+   "[\"|\",\"&\"]": "3a1db1c7ba761643",
+   "[\"|\",\"|\"]": "6646e28a0c33bec7",
+   "[\"|\",\"<\"]": "90b5594c23eaecaf",
+   "[\"|\",\">\"]": "b99c8708a0b59da5",
+   "[\"|\",\"(\"]": "aef2d7d84f41077c",
+   "[\"|\",\")\"]": "bd98a578261f5a74",
+   "[\"|\",\"`\"]": "a0ea5c81367e2c55",
+   "[\"|\",\"$\"]": "ebce6f58d39f5267",
+   "[\"|\",\"{\"]": "1ca802d3e0c5c640",
+   "[\"|\",\"}\"]": "c7fdc1c9c4f6dd20",
+   "[\"|\",\"'\"]": "a1407cd1ee5b740d",
+   "[\"|\",\"\\\"\"]": "3236d031c0a0d0f6",
+   "[\"|\",\"\\\\\"]": "ff45a6ac2aa4bcaa",
+   "[\"|\",\"#\"]": "5d6213199a38bc80",
+   "[\"|\",\"=\"]": "9b3bc183d4d9420b",
+   "[\"|\",\"-c\"]": "b0a88704e57615e8",
+   "[\"|\",\"A=\"]": "fa7f1852219f9ebb",
+   "[\"|\",\" \"]": "284e320e4304fb56",
+   "[\"|\",\"\\u0000\"]": "a2a2f02a695f37fa",
+   "[\"|\",\"~\"]": "04a5eb4870f9ba64",
+   "[\"|\",\"*\"]": "c584328c2be08f62",
+   "[\"<\"]": "2f8d616b3186a4cc",
+   "[\"<\",\"a\"]": "00c5197352093b3a",
+   "[\"<\",\"sh\"]": "f1bbae08c897b85d",
+   "[\"<\",\"2\"]": "3793f0b9b82a174a",
+   "[\"<\",\" \"]": "741cd14e54fd4e06",
+   "[\"<\",\"\\t\"]": "741cd14e54fd4e06",
+   "[\"<\",\"\\n\"]": "741cd14e54fd4e06",
+   "[\"<\",\"\\r\"]": "741cd14e54fd4e06",
+   "[\"<\",\";\"]": "05df823ed26bbbbd",
+   "[\"<\",\"&\"]": "c8d6f547bc5ee528",
+   "[\"<\",\"|\"]": "65c529c97c734f90",
+   "[\"<\",\"<\"]": "6428e6a033c1df6c",
+   "[\"<\",\">\"]": "49483e772d18be72",
+   "[\"<\",\"(\"]": "31b76b563070cd7f",
+   "[\"<\",\")\"]": "84d81ce9b35a0316",
+   "[\"<\",\"`\"]": "e533376e1324d751",
+   "[\"<\",\"$\"]": "dc2b4ac7d39f7590",
+   "[\"<\",\"{\"]": "fde4b32686209c76",
+   "[\"<\",\"}\"]": "14a03a1f8f7eea7f",
+   "[\"<\",\"'\"]": "7f14c026e5592007",
+   "[\"<\",\"\\\"\"]": "35b03e24f8377915",
+   "[\"<\",\"\\\\\"]": "2ed23bee4978251c",
+   "[\"<\",\"#\"]": "d229a42acb8b472b",
+   "[\"<\",\"=\"]": "015abe960ce715b2",
+   "[\"<\",\"-c\"]": "a807cf5716e98a73",
+   "[\"<\",\"A=\"]": "68c39a44027453d5",
+   "[\"<\",\" \"]": "741cd14e54fd4e06",
+   "[\"<\",\"\\u0000\"]": "35f9da3e73fd2aa8",
+   "[\"<\",\"~\"]": "78f3c0f8b7b0a88f",
+   "[\"<\",\"*\"]": "15b62803f89fe1de",
+   "[\">\"]": "f48efda4da3b14ee",
+   "[\">\",\"a\"]": "179d217c484a46d8",
+   "[\">\",\"sh\"]": "9354c84554856a49",
+   "[\">\",\"2\"]": "75bd5c2983dc9050",
+   "[\">\",\" \"]": "b1ee27774a6ce7f1",
+   "[\">\",\"\\t\"]": "b1ee27774a6ce7f1",
+   "[\">\",\"\\n\"]": "b1ee27774a6ce7f1",
+   "[\">\",\"\\r\"]": "b1ee27774a6ce7f1",
+   "[\">\",\";\"]": "80ef0346a229a86a",
+   "[\">\",\"&\"]": "91d5435504f7a369",
+   "[\">\",\"|\"]": "968734dc205ede6b",
+   "[\">\",\"<\"]": "4fdae10c163a82c6",
+   "[\">\",\">\"]": "e2f34cc6836b05e7",
+   "[\">\",\"(\"]": "a3980f5242e79c5c",
+   "[\">\",\")\"]": "196191ace2c600af",
+   "[\">\",\"`\"]": "9b9074fb42eff111",
+   "[\">\",\"$\"]": "5b0d729a44329901",
+   "[\">\",\"{\"]": "5498b7968e7ad1e0",
+   "[\">\",\"}\"]": "9ef74afa4fd54dbc",
+   "[\">\",\"'\"]": "c7baba804704df67",
+   "[\">\",\"\\\"\"]": "5a1e2c3517006492",
+   "[\">\",\"\\\\\"]": "77ea79bb5c005d57",
+   "[\">\",\"#\"]": "1cc288a5d87980dd",
+   "[\">\",\"=\"]": "917ca639e63ca90f",
+   "[\">\",\"-c\"]": "f60941b7482e84d2",
+   "[\">\",\"A=\"]": "c701b7a7457491a0",
+   "[\">\",\" \"]": "b1ee27774a6ce7f1",
+   "[\">\",\"\\u0000\"]": "7eb823e519b2133d",
+   "[\">\",\"~\"]": "ed82d4f963b9f540",
+   "[\">\",\"*\"]": "dcd7214b10d4af32",
+   "[\"(\"]": "e3aff0aac55ed9da",
+   "[\"(\",\"a\"]": "320d1efbe6b4345a",
+   "[\"(\",\"sh\"]": "bc6342c7b6aa31c0",
+   "[\"(\",\"2\"]": "29bb4f050fdfd0ee",
+   "[\"(\",\" \"]": "a564f012caa45656",
+   "[\"(\",\"\\t\"]": "a564f012caa45656",
+   "[\"(\",\"\\n\"]": "a564f012caa45656",
+   "[\"(\",\"\\r\"]": "a564f012caa45656",
+   "[\"(\",\";\"]": "dd211fa19e24abc1",
+   "[\"(\",\"&\"]": "f4d50aa2e74a0e44",
+   "[\"(\",\"|\"]": "1d95b4540b6dca56",
+   "[\"(\",\"<\"]": "8a5ab1cabdcb0c87",
+   "[\"(\",\">\"]": "d3496c39bb009c00",
+   "[\"(\",\"(\"]": "d8e9e46a6efb6b48",
+   "[\"(\",\")\"]": "1399f654283241e7",
+   "[\"(\",\"`\"]": "f02c9b49b3f0f569",
+   "[\"(\",\"$\"]": "3dd5f228781f457e",
+   "[\"(\",\"{\"]": "04afcfc591cee262",
+   "[\"(\",\"}\"]": "760b2c34d8addd54",
+   "[\"(\",\"'\"]": "74ab88131a79b58f",
+   "[\"(\",\"\\\"\"]": "ee5cec77d3f7b0c6",
+   "[\"(\",\"\\\\\"]": "c79dc2799344d35e",
+   "[\"(\",\"#\"]": "2519ada1b95031dd",
+   "[\"(\",\"=\"]": "67761f4fa4ad1a00",
+   "[\"(\",\"-c\"]": "01556809eb753f03",
+   "[\"(\",\"A=\"]": "e998bd8ef00adced",
+   "[\"(\",\" \"]": "a564f012caa45656",
+   "[\"(\",\"\\u0000\"]": "d3b82c2c0817ea21",
+   "[\"(\",\"~\"]": "09148f2514ccdecf",
+   "[\"(\",\"*\"]": "11ea4beb0a5c5fff",
+   "[\")\"]": "428907bfd9dcb2e0",
+   "[\")\",\"a\"]": "d5a16c83ffbcfaa4",
+   "[\")\",\"sh\"]": "0091c307921b1f3c",
+   "[\")\",\"2\"]": "aa0ec14a979c8bcf",
+   "[\")\",\" \"]": "b962772d2a63de1a",
+   "[\")\",\"\\t\"]": "b962772d2a63de1a",
+   "[\")\",\"\\n\"]": "b962772d2a63de1a",
+   "[\")\",\"\\r\"]": "b962772d2a63de1a",
+   "[\")\",\";\"]": "caeee09ce26e77fb",
+   "[\")\",\"&\"]": "54ad29c2224169b8",
+   "[\")\",\"|\"]": "d2c634e2938e5d38",
+   "[\")\",\"<\"]": "5ff4c8e2202dde07",
+   "[\")\",\">\"]": "b356c96622c39892",
+   "[\")\",\"(\"]": "6686ea2ae22500c0",
+   "[\")\",\")\"]": "5b0f3376a576bc06",
+   "[\")\",\"`\"]": "30034831c18ed3e9",
+   "[\")\",\"$\"]": "c0b2dd4a5cf919db",
+   "[\")\",\"{\"]": "087b8c70ea575ff9",
+   "[\")\",\"}\"]": "a320e6aaf9d51c76",
+   "[\")\",\"'\"]": "8927a4847f65df45",
+   "[\")\",\"\\\"\"]": "736d919478157476",
+   "[\")\",\"\\\\\"]": "b956ddf79b3bb42b",
+   "[\")\",\"#\"]": "3a3fee32f49e02b5",
+   "[\")\",\"=\"]": "046b8ec5bce89838",
+   "[\")\",\"-c\"]": "7bc7b14f1941b1ef",
+   "[\")\",\"A=\"]": "90eb18672ac736af",
+   "[\")\",\" \"]": "b962772d2a63de1a",
+   "[\")\",\"\\u0000\"]": "bcca8d43b04dbd20",
+   "[\")\",\"~\"]": "b8b9b34ba3d1028a",
+   "[\")\",\"*\"]": "4b74baac2d151a30",
+   "[\"`\"]": "761a2cb4e5f396eb",
+   "[\"`\",\"a\"]": "29129cf0e0983337",
+   "[\"`\",\"sh\"]": "13e4674edf6f345c",
+   "[\"`\",\"2\"]": "01fb3c91cdfdfabe",
+   "[\"`\",\" \"]": "b0d676281a8006e2",
+   "[\"`\",\"\\t\"]": "b0d676281a8006e2",
+   "[\"`\",\"\\n\"]": "b0d676281a8006e2",
+   "[\"`\",\"\\r\"]": "b0d676281a8006e2",
+   "[\"`\",\";\"]": "85463370e4f94c20",
+   "[\"`\",\"&\"]": "d606c213516a156b",
+   "[\"`\",\"|\"]": "b74d525f87dabfec",
+   "[\"`\",\"<\"]": "d8cbca598f7c589a",
+   "[\"`\",\">\"]": "4b5ed3e83f9c156f",
+   "[\"`\",\"(\"]": "35687649e7c94eca",
+   "[\"`\",\")\"]": "e837cea55fce59a4",
+   "[\"`\",\"`\"]": "3259041207581ac5",
+   "[\"`\",\"$\"]": "813b313ba84b636f",
+   "[\"`\",\"{\"]": "d5aa30903c661910",
+   "[\"`\",\"}\"]": "e85a434c7b2efdbe",
+   "[\"`\",\"'\"]": "c61ef5f8afa122ba",
+   "[\"`\",\"\\\"\"]": "75dab1c17a877f3e",
+   "[\"`\",\"\\\\\"]": "631a600307b9de8c",
+   "[\"`\",\"#\"]": "6ce8e30c7f1de406",
+   "[\"`\",\"=\"]": "334f31e945399f45",
+   "[\"`\",\"-c\"]": "37dd7abe52394031",
+   "[\"`\",\"A=\"]": "ea184be3c7a7b987",
+   "[\"`\",\" \"]": "b0d676281a8006e2",
+   "[\"`\",\"\\u0000\"]": "71c5005a47daede1",
+   "[\"`\",\"~\"]": "90b39bfbb88d4fac",
+   "[\"`\",\"*\"]": "de2eb1e4b6ec7bb2",
+   "[\"$\"]": "ca4a9113b624d1be",
+   "[\"$\",\"a\"]": "22b565f607d90262",
+   "[\"$\",\"sh\"]": "88746a17a5c37208",
+   "[\"$\",\"2\"]": "c39dde0fa73793bd",
+   "[\"$\",\" \"]": "f738521bd3d06c96",
+   "[\"$\",\"\\t\"]": "f738521bd3d06c96",
+   "[\"$\",\"\\n\"]": "f738521bd3d06c96",
+   "[\"$\",\"\\r\"]": "f738521bd3d06c96",
+   "[\"$\",\";\"]": "6e42241a0d59fbbb",
+   "[\"$\",\"&\"]": "4264b2300be7a684",
+   "[\"$\",\"|\"]": "e0a21c0236fb78b0",
+   "[\"$\",\"<\"]": "c242dd75ff92b4e8",
+   "[\"$\",\">\"]": "be73872fc3f3d567",
+   "[\"$\",\"(\"]": "d7addb210716d297",
+   "[\"$\",\")\"]": "df601ec9bffaae99",
+   "[\"$\",\"`\"]": "17f99fa82b52314f",
+   "[\"$\",\"$\"]": "3114e9fddf70c00a",
+   "[\"$\",\"{\"]": "8dde50f71b2d4b3b",
+   "[\"$\",\"}\"]": "c50132f2d67725f9",
+   "[\"$\",\"'\"]": "f8a44acb72f616bb",
+   "[\"$\",\"\\\"\"]": "638965eb1279caab",
+   "[\"$\",\"\\\\\"]": "259f809d66ab91c0",
+   "[\"$\",\"#\"]": "ed14770ea83ce993",
+   "[\"$\",\"=\"]": "95ed3aaa7c444aec",
+   "[\"$\",\"-c\"]": "5131dc1325ce98dc",
+   "[\"$\",\"A=\"]": "f86724c27e7fd04d",
+   "[\"$\",\" \"]": "f738521bd3d06c96",
+   "[\"$\",\"\\u0000\"]": "9a49d64be680250a",
+   "[\"$\",\"~\"]": "a7389e1ee7dfd32a",
+   "[\"$\",\"*\"]": "00bb8ed2e23abd8b",
+   "[\"{\"]": "2b4f8437b7e0c152",
+   "[\"{\",\"a\"]": "7aed1a79812c0b4d",
+   "[\"{\",\"sh\"]": "1890bafda547d7df",
+   "[\"{\",\"2\"]": "7446cb1a01205548",
+   "[\"{\",\" \"]": "372a9aa728374640",
+   "[\"{\",\"\\t\"]": "372a9aa728374640",
+   "[\"{\",\"\\n\"]": "372a9aa728374640",
+   "[\"{\",\"\\r\"]": "372a9aa728374640",
+   "[\"{\",\";\"]": "afa5df5682e2e564",
+   "[\"{\",\"&\"]": "ed2d8d012d0662fa",
+   "[\"{\",\"|\"]": "ca66f40fd54731a8",
+   "[\"{\",\"<\"]": "3c37acd5ca1e7ad6",
+   "[\"{\",\">\"]": "9f9d1547afc55753",
+   "[\"{\",\"(\"]": "9b7e4fd8ee17b8a3",
+   "[\"{\",\")\"]": "9408b3b04c55eddb",
+   "[\"{\",\"`\"]": "cfee982bae29873e",
+   "[\"{\",\"$\"]": "32ce54ec96427de8",
+   "[\"{\",\"{\"]": "a6f8dc4f7b37f730",
+   "[\"{\",\"}\"]": "fa5c67b029194265",
+   "[\"{\",\"'\"]": "9f8f7d39170a1200",
+   "[\"{\",\"\\\"\"]": "7f256e1529b6a404",
+   "[\"{\",\"\\\\\"]": "0420ae1dac0e5404",
+   "[\"{\",\"#\"]": "038a4e75ac42f85f",
+   "[\"{\",\"=\"]": "f5bdfba9da2cb641",
+   "[\"{\",\"-c\"]": "e62ff9b55f8ea98a",
+   "[\"{\",\"A=\"]": "b328cb8c6edcf6ef",
+   "[\"{\",\" \"]": "372a9aa728374640",
+   "[\"{\",\"\\u0000\"]": "3d22b990cb2c9506",
+   "[\"{\",\"~\"]": "e2ae650d1e94c474",
+   "[\"{\",\"*\"]": "783113dc46414d31",
+   "[\"}\"]": "869cf0d6fd2584d3",
+   "[\"}\",\"a\"]": "8f867ec7896b5dec",
+   "[\"}\",\"sh\"]": "75858959fef928a8",
+   "[\"}\",\"2\"]": "8919e1682b47d064",
+   "[\"}\",\" \"]": "ae847b9bf0a80514",
+   "[\"}\",\"\\t\"]": "ae847b9bf0a80514",
+   "[\"}\",\"\\n\"]": "ae847b9bf0a80514",
+   "[\"}\",\"\\r\"]": "ae847b9bf0a80514",
+   "[\"}\",\";\"]": "2a71b629da91527a",
+   "[\"}\",\"&\"]": "88100b251c3dd4f8",
+   "[\"}\",\"|\"]": "1f8f06cc1c92f968",
+   "[\"}\",\"<\"]": "5e0501770275c1b7",
+   "[\"}\",\">\"]": "18fad0162880d18e",
+   "[\"}\",\"(\"]": "7c8937696d92eeac",
+   "[\"}\",\")\"]": "5a0c205feba5001a",
+   "[\"}\",\"`\"]": "bc127121797d3e70",
+   "[\"}\",\"$\"]": "b8b1a5e20d130f01",
+   "[\"}\",\"{\"]": "f22eb9717fa2de3b",
+   "[\"}\",\"}\"]": "cf5bda84cc16b69e",
+   "[\"}\",\"'\"]": "2555dc0bb6bc303a",
+   "[\"}\",\"\\\"\"]": "5ebd7d46556b7f7e",
+   "[\"}\",\"\\\\\"]": "79fed3f13acd3e83",
+   "[\"}\",\"#\"]": "340cf4d49ac0f657",
+   "[\"}\",\"=\"]": "2f38ff1039e771b3",
+   "[\"}\",\"-c\"]": "7cec0cdc55dbd129",
+   "[\"}\",\"A=\"]": "47bf47704a1c1116",
+   "[\"}\",\" \"]": "ae847b9bf0a80514",
+   "[\"}\",\"\\u0000\"]": "83b16319a29ac598",
+   "[\"}\",\"~\"]": "2e0492b7e23826e4",
+   "[\"}\",\"*\"]": "5f55137762b4f3bc",
+   "[\"'\"]": "a2ce4f853f365462",
+   "[\"'\",\"a\"]": "f6abdba0fc27d88d",
+   "[\"'\",\"sh\"]": "c75bd16d76da2575",
+   "[\"'\",\"2\"]": "f21ac38e39abdb5b",
+   "[\"'\",\" \"]": "03d15b6917fd9d19",
+   "[\"'\",\"\\t\"]": "9acc4ecc0cd3355e",
+   "[\"'\",\"\\n\"]": "c62472981de4453c",
+   "[\"'\",\"\\r\"]": "c62472981de4453c",
+   "[\"'\",\";\"]": "c85c84524249e41b",
+   "[\"'\",\"&\"]": "99e40ccfe16ed664",
+   "[\"'\",\"|\"]": "7cb1454b6e1ca443",
+   "[\"'\",\"<\"]": "62ccdb7d91b88a64",
+   "[\"'\",\">\"]": "5c3ac03d177dfdba",
+   "[\"'\",\"(\"]": "8416a9279ac91c98",
+   "[\"'\",\")\"]": "72500e79ff5040f8",
+   "[\"'\",\"`\"]": "955f1180588e9111",
+   "[\"'\",\"$\"]": "b9dff8ef2d7a8e69",
+   "[\"'\",\"{\"]": "5f2ae0961f2e5ee1",
+   "[\"'\",\"}\"]": "2826eb9f92527225",
+   "[\"'\",\"'\"]": "9a2d93061b1ea040",
+   "[\"'\",\"\\\"\"]": "20b4c06ae527aa2a",
+   "[\"'\",\"\\\\\"]": "0ed41d6885f29520",
+   "[\"'\",\"#\"]": "3133ac380c1e4659",
+   "[\"'\",\"=\"]": "e950a3c374f2c391",
+   "[\"'\",\"-c\"]": "bc4807e93398a0ec",
+   "[\"'\",\"A=\"]": "91be9d4f606d6a90",
+   "[\"'\",\" \"]": "c62472981de4453c",
+   "[\"'\",\"\\u0000\"]": "fcdaf6448a7f8b66",
+   "[\"'\",\"~\"]": "18c65228984f301a",
+   "[\"'\",\"*\"]": "330298fc5cb62703",
+   "[\"\\\"\"]": "5fef6d01196392b5",
+   "[\"\\\"\",\"a\"]": "f1edb9b36db4a016",
+   "[\"\\\"\",\"sh\"]": "5d7beb3bc6d4a625",
+   "[\"\\\"\",\"2\"]": "b41dd8efad3ba8b8",
+   "[\"\\\"\",\" \"]": "fc3b3237f736102f",
+   "[\"\\\"\",\"\\t\"]": "f28f9fa7d43f5acf",
+   "[\"\\\"\",\"\\n\"]": "209e514578151ba0",
+   "[\"\\\"\",\"\\r\"]": "209e514578151ba0",
+   "[\"\\\"\",\";\"]": "5d9c6c278881bfd7",
+   "[\"\\\"\",\"&\"]": "37c65b0e9a8b8616",
+   "[\"\\\"\",\"|\"]": "23493662185b8fe9",
+   "[\"\\\"\",\"<\"]": "2170e6071a132e4c",
+   "[\"\\\"\",\">\"]": "eb7e37c7f480ef7e",
+   "[\"\\\"\",\"(\"]": "06e7ea910ec5d817",
+   "[\"\\\"\",\")\"]": "dd8f758077997537",
+   "[\"\\\"\",\"`\"]": "d924fe8876309991",
+   "[\"\\\"\",\"$\"]": "88e826f4124cbcdb",
+   "[\"\\\"\",\"{\"]": "f21c459335a32b49",
+   "[\"\\\"\",\"}\"]": "ffa5b0f0047d547d",
+   "[\"\\\"\",\"'\"]": "25f4650e523a1731",
+   "[\"\\\"\",\"\\\"\"]": "ad5bbae993395cba",
+   "[\"\\\"\",\"\\\\\"]": "5e943568fe79f048",
+   "[\"\\\"\",\"#\"]": "2145e6b345f0a7d6",
+   "[\"\\\"\",\"=\"]": "fcea4f96a4a64a3c",
+   "[\"\\\"\",\"-c\"]": "9fb8b54b41253907",
+   "[\"\\\"\",\"A=\"]": "3fb5c70ab2d0da9b",
+   "[\"\\\"\",\" \"]": "209e514578151ba0",
+   "[\"\\\"\",\"\\u0000\"]": "f028acf2fcdd440a",
+   "[\"\\\"\",\"~\"]": "05ef8807b434676a",
+   "[\"\\\"\",\"*\"]": "8c35e90b6d64cd1e",
+   "[\"\\\\\"]": "c5ab4a7cdde40550",
+   "[\"\\\\\",\"a\"]": "0fe3c6c2e91c0312",
+   "[\"\\\\\",\"sh\"]": "4efa94dcc4e0d3fb",
+   "[\"\\\\\",\"2\"]": "6bef6c862ff45314",
+   "[\"\\\\\",\" \"]": "51fb4d7c41299769",
+   "[\"\\\\\",\"\\t\"]": "04080b4301bbdf8d",
+   "[\"\\\\\",\"\\n\"]": "782234c8d71b2be8",
+   "[\"\\\\\",\"\\r\"]": "782234c8d71b2be8",
+   "[\"\\\\\",\";\"]": "339f817f5f388c41",
+   "[\"\\\\\",\"&\"]": "0b23fd4815237fad",
+   "[\"\\\\\",\"|\"]": "29abd72a55926e1e",
+   "[\"\\\\\",\"<\"]": "ef39d9f3bee20b64",
+   "[\"\\\\\",\">\"]": "9714401221896f8e",
+   "[\"\\\\\",\"(\"]": "c01e323c8fb652cb",
+   "[\"\\\\\",\")\"]": "9cabf1dcefc2debb",
+   "[\"\\\\\",\"`\"]": "67ea03d9a2d0ccde",
+   "[\"\\\\\",\"$\"]": "58c8ff546734be53",
+   "[\"\\\\\",\"{\"]": "9f1a4a0c745fb8fa",
+   "[\"\\\\\",\"}\"]": "93b29e1af7db8054",
+   "[\"\\\\\",\"'\"]": "36643f574e4beee4",
+   "[\"\\\\\",\"\\\"\"]": "eec2d62106979413",
+   "[\"\\\\\",\"\\\\\"]": "338f0d78f5be5d57",
+   "[\"\\\\\",\"#\"]": "a777453674309b51",
+   "[\"\\\\\",\"=\"]": "70f5753f231cd701",
+   "[\"\\\\\",\"-c\"]": "53f35f07d9c65a8f",
+   "[\"\\\\\",\"A=\"]": "24c176ea0d7f1fe5",
+   "[\"\\\\\",\" \"]": "782234c8d71b2be8",
+   "[\"\\\\\",\"\\u0000\"]": "bb6e85de43475d50",
+   "[\"\\\\\",\"~\"]": "e872218d1bc81dab",
+   "[\"\\\\\",\"*\"]": "2b70d7424083388b",
+   "[\"#\"]": "db0116e7f466742b",
+   "[\"#\",\"a\"]": "63fed1abf6ed5c08",
+   "[\"#\",\"sh\"]": "1082a1ff0d9f8117",
+   "[\"#\",\"2\"]": "76e848818994ae12",
+   "[\"#\",\" \"]": "1524223dc8031570",
+   "[\"#\",\"\\t\"]": "1524223dc8031570",
+   "[\"#\",\"\\n\"]": "9c921abfa0d3ebb4",
+   "[\"#\",\"\\r\"]": "9c921abfa0d3ebb4",
+   "[\"#\",\";\"]": "33d61fde21ee9bbb",
+   "[\"#\",\"&\"]": "f35372c5a9c42475",
+   "[\"#\",\"|\"]": "e09cc731465503c1",
+   "[\"#\",\"<\"]": "b36fce482955f30b",
+   "[\"#\",\">\"]": "6a73fcd64784d668",
+   "[\"#\",\"(\"]": "a5006167fe601027",
+   "[\"#\",\")\"]": "40f4eb64e0640557",
+   "[\"#\",\"`\"]": "a22e7d0595ee7571",
+   "[\"#\",\"$\"]": "1379a94d4619b10d",
+   "[\"#\",\"{\"]": "1e66087d594dead2",
+   "[\"#\",\"}\"]": "b188e85bc8db9571",
+   "[\"#\",\"'\"]": "799853422d060ffd",
+   "[\"#\",\"\\\"\"]": "23e6de3fe8b9e946",
+   "[\"#\",\"\\\\\"]": "76fb2e8ceade65af",
+   "[\"#\",\"#\"]": "b997c10036bc2c92",
+   "[\"#\",\"=\"]": "c0e3156707bdc026",
+   "[\"#\",\"-c\"]": "38f4ec0e892964c6",
+   "[\"#\",\"A=\"]": "d8737892511854de",
+   "[\"#\",\" \"]": "9c921abfa0d3ebb4",
+   "[\"#\",\"\\u0000\"]": "d4f3f85370c9c7a6",
+   "[\"#\",\"~\"]": "26a3463cf33d529e",
+   "[\"#\",\"*\"]": "e81779929ce5b249",
+   "[\"=\"]": "0489f568e29d11ec",
+   "[\"=\",\"a\"]": "6b205e660e6a6b82",
+   "[\"=\",\"sh\"]": "457a3b8a89bf24c0",
+   "[\"=\",\"2\"]": "d34a366134fe26e6",
+   "[\"=\",\" \"]": "43dfa8f59e73f21e",
+   "[\"=\",\"\\t\"]": "43dfa8f59e73f21e",
+   "[\"=\",\"\\n\"]": "c7a0a9204fc02da7",
+   "[\"=\",\"\\r\"]": "c7a0a9204fc02da7",
+   "[\"=\",\";\"]": "496d64ec2342a6b6",
+   "[\"=\",\"&\"]": "c4a4ed3c0091b6ae",
+   "[\"=\",\"|\"]": "9a857039f60c28de",
+   "[\"=\",\"<\"]": "66cb17a8644b45b1",
+   "[\"=\",\">\"]": "c95fafba15bb8afd",
+   "[\"=\",\"(\"]": "d788d1f3f353623a",
+   "[\"=\",\")\"]": "1771b105ba82990b",
+   "[\"=\",\"`\"]": "7d37a0bf0170d08c",
+   "[\"=\",\"$\"]": "f8d9d2fbb40c2683",
+   "[\"=\",\"{\"]": "8b0b635d8347f1a7",
+   "[\"=\",\"}\"]": "5e3335010f0b42e6",
+   "[\"=\",\"'\"]": "2957e9137f4470a0",
+   "[\"=\",\"\\\"\"]": "a64b8cf615e720d1",
+   "[\"=\",\"\\\\\"]": "7f6151641f99864f",
+   "[\"=\",\"#\"]": "fc963be5b2d2347d",
+   "[\"=\",\"=\"]": "0dba2df10b86bb44",
+   "[\"=\",\"-c\"]": "c1a2f0947f774c7f",
+   "[\"=\",\"A=\"]": "7e7876ac75bd0488",
+   "[\"=\",\" \"]": "c7a0a9204fc02da7",
+   "[\"=\",\"\\u0000\"]": "2e3d771e00fa5416",
+   "[\"=\",\"~\"]": "951ed80baed61172",
+   "[\"=\",\"*\"]": "bad7bd69a4988268",
+   "[\"-c\"]": "a358d4981af6ec1e",
+   "[\"-c\",\"a\"]": "1e24ee3e328486f9",
+   "[\"-c\",\"sh\"]": "1b07ef63366026d2",
+   "[\"-c\",\"2\"]": "57831ff5750653c8",
+   "[\"-c\",\" \"]": "7dfd268a6a936f54",
+   "[\"-c\",\"\\t\"]": "7dfd268a6a936f54",
+   "[\"-c\",\"\\n\"]": "d97dcc30846161ac",
+   "[\"-c\",\"\\r\"]": "d97dcc30846161ac",
+   "[\"-c\",\";\"]": "249b14c99817774a",
+   "[\"-c\",\"&\"]": "8b256b154bb86b3e",
+   "[\"-c\",\"|\"]": "0e1cd3cc3dcf3c24",
+   "[\"-c\",\"<\"]": "c2875b22807bee99",
+   "[\"-c\",\">\"]": "2f54a6738bfef4dc",
+   "[\"-c\",\"(\"]": "4bdb9d5e1b2c1c44",
+   "[\"-c\",\")\"]": "fb7dfafd5386a94e",
+   "[\"-c\",\"`\"]": "d2e600d5cf22588d",
+   "[\"-c\",\"$\"]": "a8dd443d40c086a9",
+   "[\"-c\",\"{\"]": "82784c233c3de15c",
+   "[\"-c\",\"}\"]": "64217ec3697a44ec",
+   "[\"-c\",\"'\"]": "7364e7def92211c0",
+   "[\"-c\",\"\\\"\"]": "1ee4c4d73d387336",
+   "[\"-c\",\"\\\\\"]": "337321250f4f7175",
+   "[\"-c\",\"#\"]": "e9eb8acb42c324c8",
+   "[\"-c\",\"=\"]": "bb3970e96ff8bf03",
+   "[\"-c\",\"-c\"]": "c2437a95adfd24a0",
+   "[\"-c\",\"A=\"]": "103d4935c5f25785",
+   "[\"-c\",\" \"]": "d97dcc30846161ac",
+   "[\"-c\",\"\\u0000\"]": "2e5d0df6877cb920",
+   "[\"-c\",\"~\"]": "8cca1789942cf12d",
+   "[\"-c\",\"*\"]": "46b0a9a7d9a8ad2c",
+   "[\"A=\"]": "95b9592755236ce1",
+   "[\"A=\",\"a\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"sh\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"2\"]": "3188a9a40b3008ee",
+   "[\"A=\",\" \"]": "1f3d52f33ee65e04",
+   "[\"A=\",\"\\t\"]": "1f3d52f33ee65e04",
+   "[\"A=\",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\"A=\",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\"A=\",\";\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"&\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"|\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"<\"]": "3188a9a40b3008ee",
+   "[\"A=\",\">\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"(\"]": "3188a9a40b3008ee",
+   "[\"A=\",\")\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"`\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"$\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"{\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"}\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"'\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"\\\"\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"\\\\\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"#\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"=\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"-c\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"A=\"]": "3188a9a40b3008ee",
+   "[\"A=\",\" \"]": "1f3d52f33ee65e04",
+   "[\"A=\",\"\\u0000\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"~\"]": "3188a9a40b3008ee",
+   "[\"A=\",\"*\"]": "3188a9a40b3008ee",
+   "[\" \"]": "95b9592755236ce1",
+   "[\" \",\"a\"]": "cecb44bffa0ad40a",
+   "[\" \",\"sh\"]": "f98fdb8171298e4d",
+   "[\" \",\"2\"]": "e73c1366b5604edb",
+   "[\" \",\" \"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\t\"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\n\"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\r\"]": "1f3d52f33ee65e04",
+   "[\" \",\";\"]": "022495f0fdbeee1e",
+   "[\" \",\"&\"]": "e36dd38f45a28450",
+   "[\" \",\"|\"]": "b5a1f211000a9216",
+   "[\" \",\"<\"]": "8d03d867593abf80",
+   "[\" \",\">\"]": "b6960ba2564a5f90",
+   "[\" \",\"(\"]": "dbad07656e6dd44c",
+   "[\" \",\")\"]": "40d1851324d73dd7",
+   "[\" \",\"`\"]": "90b659885db04230",
+   "[\" \",\"$\"]": "869181a08a31f7c9",
+   "[\" \",\"{\"]": "8b5a789e099dcd52",
+   "[\" \",\"}\"]": "b121073c0c743317",
+   "[\" \",\"'\"]": "827a0b073d24b568",
+   "[\" \",\"\\\"\"]": "56415c2f0d44f735",
+   "[\" \",\"\\\\\"]": "657d74fd1bc719f9",
+   "[\" \",\"#\"]": "b8c75c404cf4629b",
+   "[\" \",\"=\"]": "cb68e0d537781068",
+   "[\" \",\"-c\"]": "0b751b21890efc0c",
+   "[\" \",\"A=\"]": "3188a9a40b3008ee",
+   "[\" \",\" \"]": "1f3d52f33ee65e04",
+   "[\" \",\"\\u0000\"]": "693240a9b98e394f",
+   "[\" \",\"~\"]": "70c10c7531cb74b1",
+   "[\" \",\"*\"]": "b601b4f208e1f2a7",
+   "[\"\\u0000\"]": "927f0c88fc32a36a",
+   "[\"\\u0000\",\"a\"]": "271b9dfa121f9f7f",
+   "[\"\\u0000\",\"sh\"]": "e4d4e59651748c2a",
+   "[\"\\u0000\",\"2\"]": "08b32283ea6e0a71",
+   "[\"\\u0000\",\" \"]": "c20895624291dbca",
+   "[\"\\u0000\",\"\\t\"]": "c20895624291dbca",
+   "[\"\\u0000\",\"\\n\"]": "c20895624291dbca",
+   "[\"\\u0000\",\"\\r\"]": "c20895624291dbca",
+   "[\"\\u0000\",\";\"]": "6f3ed4e623f8eba2",
+   "[\"\\u0000\",\"&\"]": "326e2fd2ebdc2a51",
+   "[\"\\u0000\",\"|\"]": "a204d9559a66bcb9",
+   "[\"\\u0000\",\"<\"]": "a611c8c47c2f985b",
+   "[\"\\u0000\",\">\"]": "78cead10c95fa3a8",
+   "[\"\\u0000\",\"(\"]": "c839464b5a6af8d5",
+   "[\"\\u0000\",\")\"]": "bde038a076d1fc5e",
+   "[\"\\u0000\",\"`\"]": "0294afd5f293eddd",
+   "[\"\\u0000\",\"$\"]": "cbc54f49406b413b",
+   "[\"\\u0000\",\"{\"]": "6220802e7d49f4c4",
+   "[\"\\u0000\",\"}\"]": "f46bdfc001fef0da",
+   "[\"\\u0000\",\"'\"]": "5f513cddcc512be1",
+   "[\"\\u0000\",\"\\\"\"]": "efc5ff8088e76622",
+   "[\"\\u0000\",\"\\\\\"]": "c065b157a87820dd",
+   "[\"\\u0000\",\"#\"]": "b13e47d478962dd7",
+   "[\"\\u0000\",\"=\"]": "06836ece2140f284",
+   "[\"\\u0000\",\"-c\"]": "9da345202fbbda12",
+   "[\"\\u0000\",\"A=\"]": "70621fa0c2375ea8",
+   "[\"\\u0000\",\" \"]": "c20895624291dbca",
+   "[\"\\u0000\",\"\\u0000\"]": "9342e00535ae5119",
+   "[\"\\u0000\",\"~\"]": "d9610264c7b781ab",
+   "[\"\\u0000\",\"*\"]": "0b671e4b7635eb6b",
+   "[\"~\"]": "4aa7162cd64adf44",
+   "[\"~\",\"a\"]": "570829a1dd028d4c",
+   "[\"~\",\"sh\"]": "5101ea127316609d",
+   "[\"~\",\"2\"]": "5499bf57b1c563d0",
+   "[\"~\",\" \"]": "997f85d1fe2d93ed",
+   "[\"~\",\"\\t\"]": "997f85d1fe2d93ed",
+   "[\"~\",\"\\n\"]": "0c6644a67eae7269",
+   "[\"~\",\"\\r\"]": "0c6644a67eae7269",
+   "[\"~\",\";\"]": "83a40e3882879480",
+   "[\"~\",\"&\"]": "81c7727eaa91b244",
+   "[\"~\",\"|\"]": "bd21a2eb13c8f2ff",
+   "[\"~\",\"<\"]": "b1a58f919e91fa93",
+   "[\"~\",\">\"]": "40fc1d38d8476d9d",
+   "[\"~\",\"(\"]": "57a578b3f09573f4",
+   "[\"~\",\")\"]": "c70bcbefdbda94c4",
+   "[\"~\",\"`\"]": "25818c5b74356b8c",
+   "[\"~\",\"$\"]": "c7011e421a551c13",
+   "[\"~\",\"{\"]": "88fe66bb0c1df841",
+   "[\"~\",\"}\"]": "8f24e5cef1c99a77",
+   "[\"~\",\"'\"]": "a2d6b9a5bd6b6e25",
+   "[\"~\",\"\\\"\"]": "2d46dd210f3bf1c2",
+   "[\"~\",\"\\\\\"]": "2e27b728bf863eac",
+   "[\"~\",\"#\"]": "da40240c215df14f",
+   "[\"~\",\"=\"]": "691d607b04c15a6f",
+   "[\"~\",\"-c\"]": "695831197709c5a6",
+   "[\"~\",\"A=\"]": "d826d9aabb298d6c",
+   "[\"~\",\" \"]": "0c6644a67eae7269",
+   "[\"~\",\"\\u0000\"]": "d37a34895fdff0b3",
+   "[\"~\",\"~\"]": "9e4e09d31086f094",
+   "[\"~\",\"*\"]": "6400cd2ddd034d2a",
+   "[\"*\"]": "2529674e58bd89d7",
+   "[\"*\",\"a\"]": "30057b2f1e3ea3e9",
+   "[\"*\",\"sh\"]": "da1b55b6ccb993e3",
+   "[\"*\",\"2\"]": "3b871b7f0c85c131",
+   "[\"*\",\" \"]": "190c76a493757f19",
+   "[\"*\",\"\\t\"]": "190c76a493757f19",
+   "[\"*\",\"\\n\"]": "eed35e636d54b1f3",
+   "[\"*\",\"\\r\"]": "eed35e636d54b1f3",
+   "[\"*\",\";\"]": "e5861491a1db70ba",
+   "[\"*\",\"&\"]": "c713ca98da5e433d",
+   "[\"*\",\"|\"]": "edf70847d89f97e4",
+   "[\"*\",\"<\"]": "43bb30a04cd2c035",
+   "[\"*\",\">\"]": "3e4fd69b5e18676a",
+   "[\"*\",\"(\"]": "bfbc5d20ef7a1795",
+   "[\"*\",\")\"]": "da9dcab43b7a284a",
+   "[\"*\",\"`\"]": "ef0f54fdc06cfb7e",
+   "[\"*\",\"$\"]": "60f08bcf86e3813a",
+   "[\"*\",\"{\"]": "b379c84f0164d23d",
+   "[\"*\",\"}\"]": "f51dfc74468f5dc8",
+   "[\"*\",\"'\"]": "2157ac26cab5cca5",
+   "[\"*\",\"\\\"\"]": "559b951ba495e0c0",
+   "[\"*\",\"\\\\\"]": "ececa75c9c398306",
+   "[\"*\",\"#\"]": "b63210740fbff03f",
+   "[\"*\",\"=\"]": "7cb35bf2330a63ea",
+   "[\"*\",\"-c\"]": "119527a0bc35df50",
+   "[\"*\",\"A=\"]": "f59216539512c5a3",
+   "[\"*\",\" \"]": "eed35e636d54b1f3",
+   "[\"*\",\"\\u0000\"]": "bb6d981de517379a",
+   "[\"*\",\"~\"]": "0a3dc0d2120ec30a",
+   "[\"*\",\"*\"]": "e546464e8ef611c0"
+  }
+ }
+}
