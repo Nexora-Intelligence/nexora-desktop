@@ -44,6 +44,7 @@ const INSTRUCTIONS = [
   "Long writes truncate. Write in chunks of ~50 lines, continuing with mode:\"append\".",
   "`run_command` is one shot with an exit code. For anything that stays alive — a REPL, a dev server, an interactive installer — use `process`, which keeps the session and lets you send input to it.",
   "Paths may be scoped. If the user has set workspace folders, everything outside them is refused; `workspace_info` says which folders those are.",
+  "Secrets are scrubbed before you see them: tokens and labelled keys in file text, search hits and command output read `[redacted secret]`, and a file or an output stream that holds a private key is withheld whole. That is the tool working, not a fault to work around.",
   "`skills` lists the procedures this machine already has written down. Reading the relevant one first beats improvising a task someone has already worked out.",
 ].join("\n");
 
@@ -170,7 +171,7 @@ const TOOLS = [
   {
     name: "delete_path",
     action: "delete",
-    description: "Delete a file or an empty-or-not folder, permanently — this is not the Trash. Refuses the home folder and top-level paths.",
+    description: "Delete a file or an empty-or-not folder, permanently — over MCP this is not the Trash. Refuses the home folder and top-level paths.",
     inputSchema: { type: "object", properties: { path: { type: "string" } }, required: ["path"] },
   },
   {

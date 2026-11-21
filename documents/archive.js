@@ -16,6 +16,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.IGNORED_DIRS = void 0;
 exports.isSecretPath = isSecretPath;
+exports.hasPrivateKey = hasPrivateKey;
 exports.scrubKeyMaterial = scrubKeyMaterial;
 exports.isIgnoredPath = isIgnoredPath;
 exports.skipReasonFor = skipReasonFor;
