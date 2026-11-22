@@ -27,8 +27,12 @@ const PRELOAD = path.join(__dirname, "..", "preload.js");
 const KEY = "nx_test_KEY-that-must-stay-in-the-page";
 const A1 = "actor_3f9c1a2b4d5e6f70";
 
-// Its own profile, so the stored sign-in is this test's and nobody else's.
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), "nexora-goal-watch-electron-"));
+// Its own profile, so the stored sign-in is this test's and nobody else's. One
+// fixed folder, emptied before each run: Chromium writes a few bytes back into
+// it as it shuts down, so a fresh folder per run would leave one behind per run.
+const profile = path.join(os.tmpdir(), "nexora-goal-watch-electron");
+fs.rmSync(profile, { recursive: true, force: true });
+fs.mkdirSync(profile, { recursive: true });
 app.setPath("userData", profile);
 
 let pass = 0;
@@ -157,6 +161,9 @@ app.whenReady().then(async () => {
     return win.loadURL(appUrl);
   };
   await createWindow();
+  // loadURL resolves a beat before Chromium says the main frame has stopped
+  // loading, and a page that is still loading is (rightly) not read.
+  await until(() => !win.webContents.isLoadingMainFrame());
   const inPage = (js) => win.webContents.executeJavaScript(js, true);
 
   const goals = goalWatch.attach({
@@ -269,12 +276,12 @@ app.whenReady().then(async () => {
   app.exit(fail ? 1 : 0);
 });
 
-// The profile is this run's alone; it goes when the run does.
+// The stored sign-in (a made-up key) goes when the run does.
 process.on("exit", () => {
   try {
     fs.rmSync(profile, { recursive: true, force: true });
   } catch {
-    // Left for the OS to clear with the rest of its temp folder.
+    // The next run empties it.
   }
 });
 
