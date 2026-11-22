@@ -27,12 +27,13 @@ const PRELOAD = path.join(__dirname, "..", "preload.js");
 const KEY = "nx_test_KEY-that-must-stay-in-the-page";
 const A1 = "actor_3f9c1a2b4d5e6f70";
 
-// Its own profile, so the stored sign-in is this test's and nobody else's. One
-// fixed folder, emptied before each run: Chromium writes a few bytes back into
-// it as it shuts down, so a fresh folder per run would leave one behind per run.
-const profile = path.join(os.tmpdir(), "nexora-goal-watch-electron");
-fs.rmSync(profile, { recursive: true, force: true });
-fs.mkdirSync(profile, { recursive: true });
+// Its own profile, so the stored sign-in is this test's and nobody else's. A
+// new, unguessable folder per run: a fixed name in the shared temp folder could
+// be put there first by someone else (as a link, say) and the run would then
+// empty and write into whatever it points at. Chromium may write a few bytes
+// back as it shuts down, so a run can leave a small folder for the system's
+// temp cleaning to take.
+const profile = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), "nexora-goal-watch-electron-"));
 app.setPath("userData", profile);
 
 let pass = 0;
@@ -281,7 +282,7 @@ process.on("exit", () => {
   try {
     fs.rmSync(profile, { recursive: true, force: true });
   } catch {
-    // The next run empties it.
+    // Left for the system's temp cleaning.
   }
 });
 
