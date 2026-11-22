@@ -870,8 +870,18 @@ function attach(deps) {
       if (seq === pendingSeq) pending = null;
     };
     const wc = w.webContents;
-    if (!wc.isLoadingMainFrame() && !onApp(wc)) await wc.loadURL(deps.appUrl).catch(() => undefined);
-    for (let i = 0; i < 80 && current() && wc.isLoadingMainFrame(); i += 1) await sleep(250);
+    // Let whatever is loading finish first — a window that was only just made
+    // is already on its way to the app's address, and has no URL until then.
+    const settled = async () => {
+      for (let i = 0; i < 80 && current() && (wc.isLoadingMainFrame() || !wc.getURL()); i += 1) await sleep(250);
+    };
+    await settled();
+    // The Goals panel lives in the chat and code surfaces. From anywhere else,
+    // go home first: the app's own fixed address.
+    if (current() && !onApp(wc)) {
+      await wc.loadURL(deps.appUrl).catch(() => undefined);
+      await settled();
+    }
     if (!current() || !onApp(wc)) return giveUp();
     wc.send("nexora:goal-target");
     // Up to about eight seconds: after a fresh load the button is only there
@@ -925,6 +935,8 @@ function attach(deps) {
     },
     isEnabled: watch.isEnabled,
     setEnabled,
+    /** One read, now. For tests; the app itself only ever waits for the timer. */
+    tick: watch.tick,
     pageLoaded: watch.pageLoaded,
     pageMoved: watch.pageMoved,
     /** True for the unseen window, so "no windows open" can still mean what it says. */

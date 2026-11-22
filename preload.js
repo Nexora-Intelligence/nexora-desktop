@@ -42,4 +42,15 @@ contextBridge.exposeInMainWorld("nexoraLocal", {
     ipcRenderer.on("nexora:tasks-waiting", handler);
     return () => ipcRenderer.removeListener("nexora:tasks-waiting", handler);
   },
+  // Goals: a click on a goal outside the page — a notification, the menu bar
+  // item, the Goals menu — asks the page to open it. Same shape as the tasks
+  // above: the main process nudges, the page takes the target, once:
+  // { view: "goal", goalId } | { view: "list" } | { view: "new" } | null.
+  // (info().features includes "goals" on builds that have this.)
+  takeGoalTarget: () => ipcRenderer.invoke("nexora:takeGoalTarget"),
+  onGoalTarget: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on("nexora:goal-target", handler);
+    return () => ipcRenderer.removeListener("nexora:goal-target", handler);
+  },
 });
