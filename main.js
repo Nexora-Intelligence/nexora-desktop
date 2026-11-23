@@ -11,6 +11,8 @@ const {
   desktopCapturer,
   systemPreferences,
   Notification,
+  Tray,
+  nativeImage,
 } = require("electron");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -19,6 +21,7 @@ const local = require("./local-tools");
 const computer = require("./computer-use");
 const agentClis = require("./agent-clis");
 const { createGate } = require("./permission-gate");
+const goalWatch = require("./goal-watch");
 
 /**
  * Nexora Desktop — a native macOS shell around Nexora Chat and Nexora Code,
@@ -49,6 +52,10 @@ const TRUSTED_ORIGINS = new Set([HOME.origin, "https://nexora-chat-sandy.vercel.
 const TRUSTED_HOSTNAMES = new Set([...TRUSTED_ORIGINS].map((o) => new URL(o).hostname));
 
 let win = null;
+// Goals that run on the runtime, watched while this app runs — notifications,
+// the Dock badge and the menu bar item. Set up once the app is ready; all of
+// it lives in `goal-watch.js`.
+let goals = null;
 
 // ---------------------------------------------------------------------------
 // Permission model: one native dialog per request. "Always Allow (this
@@ -160,7 +167,7 @@ function registerBridge() {
       // What this build can do. The console feature-detects off this rather
       // than comparing version numbers, because a user running last month's
       // app against today's console is the normal case, not the exception.
-      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live", "skills", "agentCli"],
+      features: ["local", "browser", "computer", "notify", "schedule", "signin", "live", "skills", "agentCli", "goals"],
     };
   });
 
@@ -1100,6 +1107,14 @@ function registerNotifyBridge() {
     assertTrustedSender(event);
     return queuedTasks.splice(0, queuedTasks.length);
   });
+
+  // What the last click on a goal — a notification, the menu bar, the Goals
+  // menu — asked the page to open: { view: "goal", goalId } | { view: "list" }
+  // | { view: "new" }, or null. Handed over once, like the tasks above.
+  ipcMain.handle("nexora:takeGoalTarget", (event) => {
+    assertTrustedSender(event);
+    return goals ? goals.takeTarget() : null;
+  });
 }
 
 function registerBrowserBridge() {
@@ -1855,6 +1870,10 @@ function createWindow() {
     });
   });
 
+  // Whoever is signed in may have just changed: let the goal watcher look.
+  win.webContents.on("did-finish-load", () => goals && goals.pageLoaded());
+  win.webContents.on("did-navigate-in-page", () => goals && goals.pageMoved());
+
   win.loadURL(APP_URL);
   win.on("closed", () => {
     win = null;
@@ -2244,6 +2263,17 @@ function buildMenu() {
         { type: "separator" },
         { label: "New Chat", accelerator: "Cmd+N", click: () => navigate("/chat") },
         { type: "separator" },
+        // Goals run on the runtime; these open the page's own Goals panel. The
+        // same three items are in the menu bar, where the count is.
+        { label: "Goals", accelerator: "Cmd+3", click: () => goals && goals.open({ view: "list" }) },
+        { label: "New Goal…", click: () => goals && goals.open({ view: "new" }) },
+        {
+          label: "Notify me about goals",
+          type: "checkbox",
+          checked: goals ? goals.isEnabled() : true,
+          click: (item) => goals && goals.setEnabled(item.checked),
+        },
+        { type: "separator" },
         {
           label: "Local Files",
           submenu: [
@@ -2511,11 +2541,22 @@ app.whenReady().then(() => {
   // them the one call that needs it; the MCP server has none and says so.
   local.configure({ trash: (target) => shell.trashItem(target) });
   registerBridge();
+  goals = goalWatch.attach({
+    electron: { app, BrowserWindow, Tray, Menu, Notification, nativeImage },
+    getWindow: () => win,
+    createWindow,
+    appUrl: APP_URL,
+    homeOrigin: HOME.origin,
+    userData: app.getPath("userData"),
+    onChange: buildMenu, // the switch is in the menu bar too
+  });
   buildMenu();
   createWindow();
   startScheduler();
+  goals.start();
   app.on("activate", () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow();
+    // The goal watcher's unseen window does not count as a window being open.
+    if (BrowserWindow.getAllWindows().every((w) => goals.ownsWindow(w))) createWindow();
   });
 });
 
@@ -2527,4 +2568,5 @@ app.on("window-all-closed", () => {
 app.on("before-quit", () => {
   // Nothing the agent started outlives the app.
   local.killAllProcesses();
+  if (goals) goals.stop();
 });

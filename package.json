@@ -1,6 +1,6 @@
 {
   "name": "nexora-desktop",
-  "version": "1.12.0",
+  "version": "1.13.0",
   "private": true,
   "description": "Nexora Desktop — chat + coding agent with permission-gated local file & shell access, an agent-driven browser, and Nexora Live voice calls, in a native macOS shell.",
   "main": "main.js",
@@ -8,7 +8,7 @@
     "start": "electron .",
     "dist": "electron-builder --mac",
     "dist:dir": "electron-builder --mac --dir",
-    "test": "node --test test/local-skills.js test/local-documents.js test/agent-clis.js test/command-guard.js test/local-permissions.js && electron test/ui.js && electron test/electron-behaviour.js"
+    "test": "node --test test/local-skills.js test/local-documents.js test/agent-clis.js test/command-guard.js test/local-permissions.js test/goal-watch.js && electron test/ui.js && electron test/electron-behaviour.js && electron test/goal-watch-electron.js"
   },
   "devDependencies": {
     "electron": "^37.2.0",
@@ -37,6 +37,7 @@
       "share-picker.html",
       "documents/**",
       "agent-clis.js",
+      "goal-watch.js",
       "package.json",
       "!node_modules/agent-desktop/bin/*linux*",
       "!node_modules/agent-desktop/bin/*win32*",
