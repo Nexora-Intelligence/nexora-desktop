@@ -47,8 +47,16 @@ const HOME = new URL(APP_URL);
 
 // Origins whose frames may call the bridge and host the sign-in handler.
 // The standalone chat app is home; the console stays trusted through the
-// transition so an old NEXORA_DESKTOP_URL override keeps working.
-const TRUSTED_ORIGINS = new Set([HOME.origin, "https://nexora-chat-sandy.vercel.app", "https://nexora-console-two.vercel.app"]);
+// transition so an old NEXORA_DESKTOP_URL override keeps working. Chat and the
+// console now also answer on their own domains (chat.nexoraintelligence.io,
+// nexoraintelligence.io); the earlier addresses stay listed beside them.
+const TRUSTED_ORIGINS = new Set([
+  HOME.origin,
+  "https://nexora-chat-sandy.vercel.app",
+  "https://nexora-console-two.vercel.app",
+  "https://chat.nexoraintelligence.io",
+  "https://nexoraintelligence.io",
+]);
 const TRUSTED_HOSTNAMES = new Set([...TRUSTED_ORIGINS].map((o) => new URL(o).hostname));
 
 let win = null;
